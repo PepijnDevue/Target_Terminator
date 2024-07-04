@@ -43,7 +43,6 @@ class Human_rendering(Env):
         )
 
     def render(self):
-        self.screen.fill("white")
         self.screen.blit(self.background, (0, 0))
 
         self.screen.blit(self.floor.sprite, [0, self.floor.elevation])
