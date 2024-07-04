@@ -2,7 +2,7 @@ from agent import Agent
 from target import Target
 from settings import PLANE_I_16_REPUBLICAN as plane
 from settings import TARGET as target
-
+from utils import hit_collision_agents
 import numpy as np
 import settings
 import ground
@@ -52,6 +52,31 @@ class Env():
             self.target = Target(self.floor.coll_elevation, target["SPRITE"])
             self.target.coords = (self.window_size[1] - 50, self.window_size[0] / 2)
 
+    def _calculate_reward(self, state: np.ndarray)-> float:
+        """
+        State space looks like this:
+         - x (float): x position of plane
+         - y (float): y position of plane
+         - velocity_x (float): velocity of plane in x direction
+         - velocity_y (float): velocity of plane in y direction
+
+        NOTE: Function does not check for validty of state parameter
+        """
+        return -np.linalg.norm(state[:2] - self.target.coords)
+
+    def _check_if_terminated(self)-> bool:
+        return hit_collision_agents([self.target], self.agent)
+    
+    def _check_if_truncated(self)-> bool:
+        return self.agent.rot_rect.bottom >= self.floor.coll_elevation
+
+    def _calculate_observation(self)-> np.ndarray:
+        state = np.append(self.agent.pos_real, self.agent.v)
+        return state, \
+            self._calculate_reward(state), \
+            self._check_if_terminated(), \
+            self._check_if_truncated()
+
     def step(self, action: int):
         match action:
             case 0:
@@ -70,7 +95,7 @@ class Env():
                 pass #bullets
         self.agent.tick(self.dt, None)
 
-        return None
+        return self._calculate_observation()
 
     def reset(self):
         pass
