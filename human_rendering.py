@@ -18,12 +18,15 @@ class Human_rendering(Env):
             random_target=random_target, 
             random_agent=random_agent
         )
-
-        self.dt = 0
-
-        self.clock = pygame.time.Clock()
-
-        self.screen = None
+        os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
+        pygame.init()
+            
+        self.screen = pygame.display.set_mode(
+            size=settings.SCREEN_RESOLUTION,
+            flags=pygame.DOUBLEBUF
+        )
+        self.font = pygame.font.SysFont(None, 24)
+        pygame.display.set_caption('Target terminator')
 
         self.floor = ground.Ground(
             height=settings.GROUND["HEIGHT"], 
@@ -40,17 +43,6 @@ class Human_rendering(Env):
         )
 
     def render(self):
-        if self.screen is None:
-            os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
-            
-            pygame.init()
-            self.screen = pygame.display.set_mode(
-                size=settings.SCREEN_RESOLUTION,
-                flags=pygame.DOUBLEBUF
-            )
-            self.font = pygame.font.SysFont(None, 24)
-            pygame.display.set_caption('Target terminator')
-        
         self.screen.fill("white")
         self.screen.blit(self.background, (0, 0))
 
@@ -58,7 +50,6 @@ class Human_rendering(Env):
         self.screen.blit(self.agent.rot_sprite, self.agent.rot_rect)
         self.screen.blit(self.target.sprite, self.target.coords)
         
-        self.dt = self.clock.tick(settings.FPS) / 1000
         self.total_time += self.dt
 
         pygame.display.flip()
