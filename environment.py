@@ -70,6 +70,8 @@ class Env():
                 pass #bullets
         self.agent.tick(self.dt, None)
 
+        return None
+
     def reset(self):
         pass
 

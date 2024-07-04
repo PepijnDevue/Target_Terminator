@@ -3,6 +3,7 @@ from environment import Env
 import settings
 import ground
 import pygame
+import os
 
 
 class Human_rendering(Env):
@@ -40,6 +41,7 @@ class Human_rendering(Env):
 
     def render(self):
         if self.screen is None:
+            
             pygame.init()
             self.screen = pygame.display.set_mode(
                 size=settings.SCREEN_RESOLUTION,
@@ -61,9 +63,11 @@ class Human_rendering(Env):
         pygame.display.flip()
         
     def step(self, action: int):
-        super().step(action=action)
+        step_info = super().step(action=action)
 
         self.render()
+
+        return step_info
 
     def close(self):
         pygame.display.quit()
