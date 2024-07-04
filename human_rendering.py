@@ -41,6 +41,7 @@ class Human_rendering(Env):
 
     def render(self):
         if self.screen is None:
+            os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
             
             pygame.init()
             self.screen = pygame.display.set_mode(
