@@ -31,16 +31,17 @@ class Target:
         ))
         self.rect = pygame.Rect(self.coords[0], self.coords[1], size, size)
         self.rect.center = self.coords + (np.array([size, size]) / 2)
+        self.sprite = pygame.image.load(sprite)        
+        self.sprite = pygame.transform.scale(self.sprite, (size, size))
 
-
-        if settings.USE_GUI:
-            pygame.draw.rect(
-                surface=pygame.display.get_surface(),
-                color="black",
-                rect=self.rect
-            )
-            self.sprite = pygame.image.load(sprite)        
-            self.sprite = pygame.transform.scale(self.sprite, (size, size))
+        # if settings.USE_GUI:
+        #     pygame.draw.rect(
+        #         surface=pygame.display.get_surface(),
+        #         color="black",
+        #         rect=self.rect
+        #     )
+        #     self.sprite = pygame.image.load(sprite)        
+        #     self.sprite = pygame.transform.scale(self.sprite, (size, size))
 
 
 def load_single_type_targets(
