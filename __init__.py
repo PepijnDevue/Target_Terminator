@@ -1,5 +1,7 @@
 import sys
-sys.path += ["Target_Terminater/"]
+import os
+sys.path += ["Target_Terminater/", "Target_Terminater/sssets/"]
+os.chdir('Target_Terminater/')
 
 from environment.env import Env
 from environment.human_rendering import Human_rendering
