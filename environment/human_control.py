@@ -1,4 +1,4 @@
-from human_rendering import Human_rendering
+from environment.human_rendering import Human_rendering
 
 import pygame
 

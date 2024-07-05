@@ -2,16 +2,15 @@ import settings
 import pygame
 import numpy as np
 
-import agent
-import aircraft
-import bullet as bullet
-import target
+from simulation.agent import Agent
+from simulation.aircraft import Aircraft
+from simulation.target import Target, load_single_type_targets
 
 
 def hit_detection_and_move_projectiles(
-        targets: target.Target,
-        agents: list[agent.Agent],
-        current_agent: agent.Agent,
+        targets: Target,
+        agents: list[Agent],
+        current_agent: Agent,
         dt: float
     ) -> None:
     """
@@ -48,7 +47,7 @@ def hit_detection_and_move_projectiles(
 
 
 def hit_detection_agents(
-        agents: list[agent.Agent],
+        agents: list[Agent],
     ) -> None:
     """
     This function checks if an agent hits another agent
@@ -67,8 +66,8 @@ def hit_detection_agents(
                 
                 
 def hit_collision_agents(
-        targets: list[target.Target],
-        player: aircraft.Aircraft
+        targets: list[Target],
+        player: Aircraft
     ) -> bool:
     """
     This function checks if the player hits a target. If a player
@@ -86,9 +85,9 @@ def hit_collision_agents(
     return False
      
 def create_targets(
-        targets: list[target.Target],
+        targets: list[Target],
         ground_height: int
-    ) -> list[target.Target]:
+    ) -> list[Target]:
     """
     This function generates new targets if the number of targets is 
      less than the defined amount in settings.py. Ground height is used
@@ -99,7 +98,7 @@ def create_targets(
     :return: list of target (list[target.Target])
     """
     if len(targets) < settings.TARGET["TARGET_COUNT"]:
-        new_targets = target.load_single_type_targets(
+        new_targets = load_single_type_targets(
             ground_height,
             settings.TARGET["TARGET_COUNT"] - len(targets)
         )
@@ -110,7 +109,7 @@ def create_targets(
 
 
 def display_targets(
-        targets: list[target.Target],
+        targets: list[Target],
         screen: pygame.Surface
     ) -> None:
     """
@@ -127,7 +126,7 @@ def display_targets(
 
 
 def display_projectiles(
-        agents: list[agent.Agent],
+        agents: list[Agent],
         screen: pygame.Surface
     ) -> None:
     """
@@ -151,9 +150,9 @@ def display_projectiles(
 
 
 def check_surround(
-        current_agent: agent.Agent, 
-        targets: list[target.Target], 
-        agents : list[agent.Agent],
+        current_agent: Agent, 
+        targets: list[Target], 
+        agents : list[Agent],
         fov_radius: int
     ) -> list: 
     """

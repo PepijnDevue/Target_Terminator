@@ -4,9 +4,9 @@ import sys
 import time
 import numpy as np
 
-from aircraft import Aircraft
+from simulation.aircraft import Aircraft
 import settings
-import bullet
+from simulation.bullet import Bullet
 
 
 class Agent(Aircraft):
@@ -511,7 +511,7 @@ class Agent(Aircraft):
             return
         self.timer = current_time
         self.bullets.append(
-            bullet.Bullet(
+            Bullet(
                 self.pos_virtual,
                 self.pitch,
                 settings.GROUND["COLL_ELEVATION"],

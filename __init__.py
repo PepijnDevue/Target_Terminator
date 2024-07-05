@@ -1,6 +1,9 @@
-from environment import Env
-from human_rendering import Human_rendering
-from human_control import Human_control
+import sys
+sys.path += ["Target_Terminater/"]
+
+from environment.env import Env
+from environment.human_rendering import Human_rendering
+from environment.human_control import Human_control
 
 import settings
 
@@ -12,6 +15,5 @@ def make(render_mode) -> Env:
         case "keyboard":
             env = Human_control(window_size)
         case _:
-            env = Env(window_size)
-        
+            env = Env(window_size)        
     return env

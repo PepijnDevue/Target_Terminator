@@ -9,7 +9,7 @@ from energy_bidding_team import EnergyBiddingTeam
 from two_targets_distance_team import TwoTargetsTeam
 from target import Target
 import ground
-import utils
+import AS_3_1.Target_Terminater.utils.utils as utils
 import copy
 
 start = time.time()

@@ -1,9 +1,10 @@
-from agent import Agent
-from target import Target
-from utils import hit_collision_agents
+from simulation.agent import Agent
+from simulation.target import Target
+from utils.utils import hit_collision_agents
 import numpy as np
 import settings
-import ground
+from simulation.ground import Ground
+
 
 class Env():
     def __init__(
@@ -23,7 +24,7 @@ class Env():
         self._create_object_instances()
 
     def _create_object_instances(self):
-        self.floor = ground.Ground(
+        self.floor = Ground(
             height=settings.GROUND["HEIGHT"],
             elevation=settings.GROUND["ELEVATION"],
             coll_elevation=settings.GROUND["COLL_ELEVATION"],

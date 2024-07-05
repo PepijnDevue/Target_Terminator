@@ -1,10 +1,10 @@
-from environment import Env
-from agent import Agent
-from target import Target
+from environment.env import Env
+from simulation.agent import Agent
+from simulation.target import Target
 
 import numpy as np
 import settings
-import ground
+from simulation.ground import Ground
 import pygame
 import os
 
@@ -29,7 +29,7 @@ class Human_rendering(Env):
         )
 
     def _create_object_instances(self):
-        self.floor = ground.Ground(
+        self.floor = Ground(
             height=settings.GROUND["HEIGHT"], 
             elevation=settings.GROUND["ELEVATION"],
             coll_elevation=settings.GROUND["COLL_ELEVATION"],
