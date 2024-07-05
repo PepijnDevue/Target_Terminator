@@ -154,6 +154,9 @@ class Aircraft:
             )
             self.rot_rect = self.sprite.get_rect(center=init_pos)
 
+            self.rot_rect.centerx = self.pos_virtual[0]
+            self.rot_rect.centery = self.pos_virtual[1]
+
         self.flipsprite = pygame.image.load(sprite_top)
         self.flipsprite = pygame.transform.scale(self.flipsprite, plane_size)
         self.spritecontainer = self.sprite

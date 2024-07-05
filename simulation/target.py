@@ -13,7 +13,12 @@ class Target:
     + rect: (pygame.rect) rect
     + sprite: (pygame.surface) sprite
     """
-    def __init__(self, ground_height: int, sprite:str=None) -> None:
+    def __init__(
+            self, 
+            ground_height: int, 
+            sprite:str=None, 
+            coords:tuple=None
+        ) -> None:
         """
         Initaliser of the Target class
 
@@ -22,25 +27,27 @@ class Target:
          target (Default = False) (str)
         """
         size = settings.TARGET["SIZE"]
-        self.coords = np.array((
-            random.randint(
-                size, settings.SCREEN_WIDTH - size
-            ), random.randint(
-                10, ground_height - size
-            )
-        ))
-        self.rect = pygame.Rect(self.coords[0], self.coords[1], size, size)
-        self.rect.center = self.coords + (np.array([size, size]) / 2)
+        if coords is None:
+            coords = np.array((
+                random.randint(
+                    size, settings.SCREEN_WIDTH - size
+                ), random.randint(
+                    10, ground_height - size
+                )
+            ))
+        self.rect = pygame.Rect(coords[0], coords[1], size, size)
+        self.rect.center = coords + (np.array([size, size]) / 2)
+        self.sprite = pygame.image.load(sprite)        
+        self.sprite = pygame.transform.scale(self.sprite, (size, size))
 
-
-        if settings.USE_GUI:
-            pygame.draw.rect(
-                surface=pygame.display.get_surface(),
-                color="black",
-                rect=self.rect
-            )
-            self.sprite = pygame.image.load(sprite)        
-            self.sprite = pygame.transform.scale(self.sprite, (size, size))
+        # if settings.USE_GUI:
+        #     pygame.draw.rect(
+        #         surface=pygame.display.get_surface(),
+        #         color="black",
+        #         rect=self.rect
+        #     )
+        #     self.sprite = pygame.image.load(sprite)        
+        #     self.sprite = pygame.transform.scale(self.sprite, (size, size))
 
 
 def load_single_type_targets(

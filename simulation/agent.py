@@ -4,9 +4,9 @@ import sys
 import time
 import numpy as np
 
-from aircraft import Aircraft
+from simulation.aircraft import Aircraft
 import settings
-import bullet
+from simulation.bullet import Bullet
 
 
 class Agent(Aircraft):
@@ -215,9 +215,9 @@ class Agent(Aircraft):
         :return: None
         """
         super().tick(dt, fov)
-        self.dangerzone(fov)
-        if self.target is not None:
-            self.kill_target(dt)
+        # self.dangerzone(fov)
+        # if self.target is not None:
+        #     self.kill_target(dt)
 
     def explore(self, dt, fov_evade):
         """
@@ -511,7 +511,7 @@ class Agent(Aircraft):
             return
         self.timer = current_time
         self.bullets.append(
-            bullet.Bullet(
+            Bullet(
                 self.pos_virtual,
                 self.pitch,
                 settings.GROUND["COLL_ELEVATION"],
