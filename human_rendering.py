@@ -1,5 +1,8 @@
 from environment import Env
+from agent import Agent
+from target import Target
 
+import numpy as np
 import settings
 import ground
 import pygame
@@ -9,15 +12,8 @@ import os
 class Human_rendering(Env):
     def __init__(
         self, 
-        window_size: tuple, 
-        random_target: bool=False, 
-        random_agent: bool=False
+        window_size: tuple
     )-> None:
-        super().__init__(
-            window_size=window_size,
-            random_target=random_target, 
-            random_agent=random_agent
-        )
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
         pygame.init()
             
@@ -28,6 +24,11 @@ class Human_rendering(Env):
         self.font = pygame.font.SysFont(None, 24)
         pygame.display.set_caption('Target terminator')
 
+        super().__init__(
+            window_size=window_size
+        )
+
+    def _create_object_instances(self):
         self.floor = ground.Ground(
             height=settings.GROUND["HEIGHT"], 
             elevation=settings.GROUND["ELEVATION"],
@@ -41,13 +42,35 @@ class Human_rendering(Env):
             self.background,
             settings.SCREEN_RESOLUTION
         )
+        
+        self.agent = Agent(
+            settings.SCREEN_RESOLUTION,
+            settings.PLANE_I_16_FALANGIST["SPRITE"],
+            settings.PLANE_I_16_FALANGIST["SPRITE_TOP"],
+            settings.PLANE_I_16_FALANGIST["MASS"],
+            settings.PLANE_I_16_FALANGIST["ENGINE_FORCE"],
+            settings.PLANE_I_16_FALANGIST["AGILITY"],
+            settings.PLANE_I_16_FALANGIST["C_DRAG"],
+            settings.PLANE_I_16_FALANGIST["C_LIFT"],
+            settings.PLANE_I_16_FALANGIST["AOA_CRIT_LOW"],
+            settings.PLANE_I_16_FALANGIST["AOA_CRIT_HIGH"],
+            settings.PLANE_I_16_FALANGIST["CL0"],
+            settings.PLANE_I_16_FALANGIST["CD_MIN"],
+            settings.PLANE_I_16_FALANGIST["INIT_THROTTLE"],
+            0.0, # Start pitch
+            settings.PLANE_I_16_FALANGIST["INIT_V"],
+            np.array((50, self.window_size[1] / 2)) / settings.PLANE_POS_SCALE % settings.SCREEN_RESOLUTION,
+            settings.PLANE_I_16_FALANGIST["SIZE"]
+        )
+
+        self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (self.window_size[0] - 50, self.window_size[1] / 2))
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
 
         self.screen.blit(self.floor.sprite, [0, self.floor.elevation])
         self.screen.blit(self.agent.rot_sprite, self.agent.rot_rect)
-        self.screen.blit(self.target.sprite, self.target.coords)
+        self.screen.blit(self.target.sprite, self.target.rect)
         
         self.total_time += self.dt
 
@@ -59,6 +82,12 @@ class Human_rendering(Env):
         self.render()
 
         return step_info
+    
+    def reset(self):
+        super().reset()
+
+        self.render()
+
 
     def close(self):
         pygame.display.quit()
