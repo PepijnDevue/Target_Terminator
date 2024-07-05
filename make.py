@@ -15,4 +15,3 @@ def make(render_mode) -> Env:
             env = Env(window_size)
         
     return env
-

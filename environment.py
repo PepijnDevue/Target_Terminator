@@ -71,10 +71,14 @@ class Env():
 
     def _calculate_observation(self)-> np.ndarray:
         state = np.append(self.agent.pos_real, self.agent.v)
+        is_terminated = self._check_if_terminated()
+        is_truncated = self._check_if_truncated()
         return state, \
-            self._calculate_reward(state), \
-            self._check_if_terminated(), \
-            self._check_if_truncated()
+            self._calculate_reward(state) + \
+                (is_terminated * 1_000_000) + \
+                (is_truncated * 1_000_000_000), \
+            is_terminated, \
+            is_truncated            
 
     def step(self, action: int):
         match action:
