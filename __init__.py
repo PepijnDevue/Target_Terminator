@@ -1,7 +1,10 @@
 import sys
 import os
 sys.path += ["Target_Terminater/", "Target_Terminater/sssets/"]
-os.chdir('Target_Terminater/')
+try:
+    os.chdir('Target_Terminater/')
+except:
+    pass
 
 from environment.env import Env
 from environment.human_rendering import Human_rendering
