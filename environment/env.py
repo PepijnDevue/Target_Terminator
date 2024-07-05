@@ -79,7 +79,8 @@ class Env():
                 (is_terminated * 1_000_000) + \
                 (is_truncated * 1_000_000_000), \
             is_terminated, \
-            is_truncated            
+            is_truncated, \
+            {}            
 
     def step(self, action: int):
         match action:
@@ -101,7 +102,7 @@ class Env():
 
         return self._calculate_observation()
 
-    def reset(self):
+    def reset(self, seed: int=42):
         self.agent = Agent(
             settings.SCREEN_RESOLUTION,
             settings.PLANE_I_16_FALANGIST["SPRITE"],
@@ -123,6 +124,8 @@ class Env():
         )
 
         self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (self.window_size[0] - 50, self.window_size[1] / 2))
+        return np.append(self.agent.pos_real, self.agent.v), {}
+
         
     def render(self):
         raise NotImplementedError(

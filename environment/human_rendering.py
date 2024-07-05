@@ -83,7 +83,7 @@ class Human_rendering(Env):
 
         return step_info
     
-    def reset(self):
+    def reset(self, seed: int=42):
         super().reset()
 
         self.render()
