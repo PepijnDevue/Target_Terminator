@@ -90,4 +90,3 @@ class HumanRenderingEnv(BaseEnv):
     def close(self)-> None:
         pygame.display.quit()
         pygame.quit()
-    
