@@ -33,5 +33,15 @@ ENVIRONMENT_TEMPLATE = {
                 'min' : 0
             }
         }
+    },
+    'background' : {
+        'required' : False,
+        'type' : 'dict',
+        'schema' : {
+            'sprite' : {
+                'required' : False,
+                'type' : 'string',
+            }
+        }
     }
 }

@@ -4,3 +4,5 @@ ground:
     sprite : "assets/floor.png"
     height : 50 # number of pixels from the bottom
     collision_elevation : 670 # number of pixels from the top
+background:
+    sprite : "assets/background.png"

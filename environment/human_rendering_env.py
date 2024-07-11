@@ -6,7 +6,6 @@ from environment.base_env import BaseEnv
 from simulation.plane import Plane
 from simulation.target import Target
 from simulation.ground import Ground
-import settings
 
 
 class HumanRenderingEnv(BaseEnv):
@@ -19,20 +18,11 @@ class HumanRenderingEnv(BaseEnv):
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
         pygame.init()
             
-        self.screen = pygame.display.set_mode(
-            size=settings.SCREEN_RESOLUTION,
-            flags=pygame.DOUBLEBUF
-        )
-        self.font = pygame.font.SysFont(None, 24)
-        pygame.display.set_caption('Target terminator')
-
         super().__init__(
             plane_config=plane_config,
             env_config=env_config,
             target_config=target_config
         )
-
-        self._create_background()
 
         # sprite data is not manditory in config, 
         # so we check these here
@@ -44,6 +34,19 @@ class HumanRenderingEnv(BaseEnv):
         assert "sprite" in self.target_data, "`sprite` key not in target data"
         assert "sprite" in self.env_data["ground"], \
             "`sprite` key not in `ground` field in target data"
+        assert "sprite" in self.env_data["background"], \
+            "`sprite` key is not in background field in target data"
+        
+        self.screen = pygame.display.set_mode(
+            size=self.env_data["window_dimensions"],
+            flags=pygame.DOUBLEBUF
+        )
+        self.font = pygame.font.SysFont(None, 24)
+        pygame.display.set_caption('Target terminator')
+
+        self._create_background()
+
+
         
 
     def _create_floor(self)-> None:
@@ -57,10 +60,12 @@ class HumanRenderingEnv(BaseEnv):
 
 
     def _create_background(self)-> None:
-        self.background = pygame.image.load("assets/background.png")
+        self.background = pygame.image.load(
+            self.env_data["background"]["sprite"]
+        )
         self.background = pygame.transform.scale(
             self.background,
-            settings.SCREEN_RESOLUTION
+            self.env_data["window_dimensions"]
         )
 
     def render(self)-> None:
@@ -85,7 +90,6 @@ class HumanRenderingEnv(BaseEnv):
         super().reset()
 
         self.render()
-
 
     def close(self)-> None:
         pygame.display.quit()
