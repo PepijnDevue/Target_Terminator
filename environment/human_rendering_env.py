@@ -8,7 +8,7 @@ from simulation.ground import Ground
 import settings
 
 
-class Human_rendering(BaseEnv):
+class HumanRenderingEnv(BaseEnv):
     def __init__(
         self, 
         plane_config: str="config/i-16_falangist.yaml",

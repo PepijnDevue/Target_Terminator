@@ -1,9 +1,9 @@
 import pygame
 
-from environment.human_rendering import Human_rendering
+from environment.human_rendering_env import HumanRenderingEnv
 
 
-class Human_control(Human_rendering):
+class HumanControlEnv(HumanRenderingEnv):
     def __init__(
         self, 
         plane_config: str="config/i-16_falangist.yaml",
