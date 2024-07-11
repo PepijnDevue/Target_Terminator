@@ -1,10 +1,7 @@
 import pygame
 import math
-import yaml
 import time
 import numpy as np
-
-import utils
 
 
 class Plane:
@@ -50,51 +47,13 @@ class Plane:
     """
     def __init__(
         self,
-        plane_config: str,
-        env_config: str,
+        plane_data: dict,
+        env_data: dict,
         use_gui: bool=False
     ) -> None:
         """
         
         """
-        with open(plane_config, 'r') as stream:
-            plane_data = yaml.safe_load(stream)
-        assert utils.validate_yaml_data(
-            plane_data, 
-            ((
-                "properties", [
-                    "mass", 
-                    "engine_force",
-                    "agility",
-                    "drag_constant",
-                    "lift_constant",
-                    "critical_aoa_lower_bound",
-                    "critical_aoa_higher_bound",
-                    "lift_coeficient_aoa_0",
-                    "drag_coeficient_aoa_0"
-                ]
-            ), (
-                "starting_config", [
-                    "initial_throttle",
-                    "initial_pitch",
-                    "initial_velocity",
-                    "initial_position",
-                    "size"
-                ]
-            ), (
-                "sprite", [
-                    "side_view_dir",
-                    "top_view_dir"
-                ]
-            ) if use_gui else (_, []))
-    ), "Invalid plane config."
-        with open(env_config, 'r') as stream:
-            env_data = yaml.safe_load(stream)
-        assert utils.validate_yaml_data(
-            env_data, 
-            ["window_dimensions", "plane_pos_scale"]
-        ), "Invalid environment config."
-
         self.window_dimensions = env_data["window_dimensions"]
 
         # Constants

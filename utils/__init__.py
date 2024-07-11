@@ -1,1 +1,0 @@
-from utils.validate_yamls import validate_yaml_data

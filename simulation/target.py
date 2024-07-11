@@ -1,7 +1,4 @@
 import pygame
-import yaml
-
-import utils
 
 
 class Target:
@@ -14,24 +11,12 @@ class Target:
     """
     def __init__(
             self, 
-            target_config: str="config/default_target.yaml",
+            target_data: dict,
             use_gui: bool=False
         ) -> None:
         """
         Initaliser of the Target class
         """
-        with open(target_config, 'r') as stream:
-            target_data = yaml.safe_load(stream)
-        assert utils.validate_yaml_data(
-            target_data, [
-                "sprite", 
-                "size", 
-                "position"
-            ] if not use_gui else [
-                "size", 
-                "position"
-            ]
-        ), "Invalid environment config."
 
         self.rect = pygame.Rect(target_data["position"], target_data["size"])
         

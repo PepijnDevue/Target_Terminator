@@ -1,10 +1,12 @@
+import yaml
+from cerberus import Validator
 import numpy as np
 
 from simulation.plane import Plane
 from simulation.target import Target
 from simulation.ground import Ground
 from utils.utils import hit_collision_agents
-import settings
+import config.validation_templates as templates
 
 
 class BaseEnv():
@@ -19,9 +21,24 @@ class BaseEnv():
         """
         self.dt = 1 / 60
         self.total_time = 0
-        self.plane_config = plane_config
-        self.env_config = env_config
-        self.target_config = target_config
+        
+        validator = Validator()
+        with open(plane_config, 'r') as stream:
+            self.plane_data = yaml.safe_load(stream)
+        assert validator.validate(self.plane_data, templates.PLANE_TEMPLATE), \
+            f"A validation error occored in the plane data: {validator.errors}"
+
+        with open(env_config, 'r') as stream:
+            self.env_data = yaml.safe_load(stream)
+        assert validator.validate(self.env_data, templates.ENVIRONMENT_TEMPLATE), \
+            f"A validation error occored in the env data: {validator.errors}"
+
+        with open(target_config, 'r') as stream:
+            self.target_data = yaml.safe_load(stream)
+        assert validator.validate(self.target_data, templates.TARGET_TEMPLATE), \
+            f"A validation error occored in the target data: {validator.errors}"
+
+
         self.floor = None
         self.agent = None
         self.target = None
@@ -31,13 +48,13 @@ class BaseEnv():
         self._create_target()
 
     def _create_floor(self)-> None:
-        self.floor = Ground(self.env_config)
+        self.floor = Ground(self.env_data)
 
     def _create_agent(self)-> None:
-        self.agent = Plane(self.plane_config, self.env_config)
+        self.agent = Plane(self.plane_data, self.env_data)
 
     def _create_target(self)-> None:
-        self.target = Target(self.target_config)
+        self.target = Target(self.target_data)
 
     def _calculate_reward(self, state: np.ndarray)-> float:
         """
