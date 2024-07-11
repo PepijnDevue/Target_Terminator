@@ -1,0 +1,20 @@
+sprite:
+    side_view_dir : "assets/i16_falangist.png"
+    top_view_dir  : "assets/i16_falangist_top.png"
+properties:
+    mass : 1200
+    engine_force : 300
+    agility : 100
+    drag_constant : 0.6
+    lift_constant : 100
+    critical_aoa_lower_bound : [-15.0, -0.95] # aoa = angle of attack
+    critical_aoa_higher_bound : [19.0, 1.4]
+    lift_coeficient_aoa_0 : 0.32 # lift coeficient at aoa 0
+    drag_coeficient_aoa_0 : 0.5 # drag coeficient at aoa 0
+starting_config:
+    initial_throttle : 100 # percentage
+    initial_pitch : 0 # between -180 and 180
+    initial_velocity : [100.0, 0.0] # velocity vector
+    initial_position : [0, 50] # in percentages of screen dimentions
+    size : [24, 12]  # 6.13 : 3.25 irl
+  

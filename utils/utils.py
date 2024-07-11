@@ -2,15 +2,14 @@ import settings
 import pygame
 import numpy as np
 
-from simulation.agent import Agent
-from simulation.aircraft import Aircraft
+from simulation.plane import Plane
 from simulation.target import Target, load_single_type_targets
 
 
 def hit_detection_and_move_projectiles(
         targets: Target,
-        agents: list[Agent],
-        current_agent: Agent,
+        agents: list[Plane],
+        current_agent: Plane,
         dt: float
     ) -> None:
     """
@@ -47,7 +46,7 @@ def hit_detection_and_move_projectiles(
 
 
 def hit_detection_agents(
-        agents: list[Agent],
+        agents: list[Plane],
     ) -> None:
     """
     This function checks if an agent hits another agent
@@ -67,7 +66,7 @@ def hit_detection_agents(
                 
 def hit_collision_agents(
         targets: list[Target],
-        player: Aircraft
+        player: Plane
     ) -> bool:
     """
     This function checks if the player hits a target. If a player
@@ -126,7 +125,7 @@ def display_targets(
 
 
 def display_projectiles(
-        agents: list[Agent],
+        agents: list[Plane],
         screen: pygame.Surface
     ) -> None:
     """
@@ -150,9 +149,9 @@ def display_projectiles(
 
 
 def check_surround(
-        current_agent: Agent, 
+        current_agent: Plane, 
         targets: list[Target], 
-        agents : list[Agent],
+        agents : list[Plane],
         fov_radius: int
     ) -> list: 
     """

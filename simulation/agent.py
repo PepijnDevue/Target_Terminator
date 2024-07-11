@@ -1,15 +1,14 @@
 import math
-import string
 import sys
 import time
 import numpy as np
 
-from simulation.aircraft import Aircraft
+from simulation.plane import Plane
 import settings
 from simulation.bullet import Bullet
 
 
-class Agent(Aircraft):
+class Agent(Plane):
     """
     Agent class.
 
@@ -66,24 +65,8 @@ class Agent(Aircraft):
     """
     def __init__(
         self,
-        window_dimensions: tuple[int, int],
-        sprite: string = None,
-        sprite_top: string = None,
-        mass: float = 12,
-        engine_force: float = 10,
-        agility: float = 100,
-        c_drag: float = 0.002,
-        c_lift: float = 0.01,
-        AoA_crit_low: tuple[float, float] = (-15.0, -0.95),
-        AoA_crit_high: tuple[float, float] = (19.0, 1.4),
-        cl0: float = 0.16,
-        cd_min: float = 0.25,
-        init_throttle: float = 0,
-        init_pitch: float = 0,
-        init_v: tuple[float, float] = (0, 0),
-        init_pos: tuple[int, int] = (0, 0),
-        plane_size: tuple[int, int] = (24, 13),
-        evade_zone: tuple[int, int] = np.array((150, 30))
+        plane_config: str,
+        env_config: str,
     ) -> None:
         """
         Initaliser for Agent
@@ -120,23 +103,8 @@ class Agent(Aircraft):
         """
 
         super().__init__(
-            window_dimensions,
-            sprite,
-            sprite_top,
-            mass,
-            engine_force,
-            agility,
-            c_drag,
-            c_lift,
-            AoA_crit_low,
-            AoA_crit_high,
-            cl0,
-            cd_min,
-            init_throttle,
-            init_pitch,
-            init_v,
-            init_pos,
-            plane_size
+            plane_config,
+            env_config,
         )
 
         # dangerzone

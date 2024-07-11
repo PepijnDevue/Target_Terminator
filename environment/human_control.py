@@ -1,15 +1,17 @@
-from environment.human_rendering import Human_rendering
-
 import pygame
+
+from environment.human_rendering import Human_rendering
 
 
 class Human_control(Human_rendering):
     def __init__(
         self, 
-        window_size: tuple
+        plane_config: str="config/i-16_falangist.yaml",
+        env_config: str="config/default_env.yaml"
     )-> None:
         super().__init__(
-            window_size=window_size
+            plane_config=plane_config,
+            env_config=env_config
         )
 
     def step(self, action=0):

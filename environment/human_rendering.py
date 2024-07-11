@@ -1,5 +1,5 @@
-from environment.env import Env
-from simulation.agent import Agent
+from environment.base_env import BaseEnv
+from simulation.plane import Plane
 from simulation.target import Target
 
 import numpy as np
@@ -9,10 +9,11 @@ import pygame
 import os
 
 
-class Human_rendering(Env):
+class Human_rendering(BaseEnv):
     def __init__(
         self, 
-        window_size: tuple
+        plane_config: str="config/i-16_falangist.yaml",
+        env_config: str="config/default_env.yaml"
     )-> None:
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
         pygame.init()
@@ -25,7 +26,8 @@ class Human_rendering(Env):
         pygame.display.set_caption('Target terminator')
 
         super().__init__(
-            window_size=window_size
+            plane_config=plane_config,
+            env_config=env_config
         )
 
     def _create_object_instances(self):
@@ -43,33 +45,18 @@ class Human_rendering(Env):
             settings.SCREEN_RESOLUTION
         )
         
-        self.agent = Agent(
-            settings.SCREEN_RESOLUTION,
-            settings.PLANE_I_16_FALANGIST["SPRITE"],
-            settings.PLANE_I_16_FALANGIST["SPRITE_TOP"],
-            settings.PLANE_I_16_FALANGIST["MASS"],
-            settings.PLANE_I_16_FALANGIST["ENGINE_FORCE"],
-            settings.PLANE_I_16_FALANGIST["AGILITY"],
-            settings.PLANE_I_16_FALANGIST["C_DRAG"],
-            settings.PLANE_I_16_FALANGIST["C_LIFT"],
-            settings.PLANE_I_16_FALANGIST["AOA_CRIT_LOW"],
-            settings.PLANE_I_16_FALANGIST["AOA_CRIT_HIGH"],
-            settings.PLANE_I_16_FALANGIST["CL0"],
-            settings.PLANE_I_16_FALANGIST["CD_MIN"],
-            settings.PLANE_I_16_FALANGIST["INIT_THROTTLE"],
-            0.0, # Start pitch
-            settings.PLANE_I_16_FALANGIST["INIT_V"],
-            np.array((50, self.window_size[1] / 2)) / settings.PLANE_POS_SCALE % settings.SCREEN_RESOLUTION,
-            settings.PLANE_I_16_FALANGIST["SIZE"]
+        self.agent = Plane(
+            self.plane_config,
+            self.env_config
         )
 
-        self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (self.window_size[0] - 50, self.window_size[1] / 2))
+        self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (settings.SCREEN_RESOLUTION[0] - 50, settings.SCREEN_RESOLUTION[1] / 2))
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
 
         self.screen.blit(self.floor.sprite, [0, self.floor.elevation])
-        self.screen.blit(self.agent.rot_sprite, self.agent.rot_rect)
+        self.screen.blit(self.agent.sprite, self.agent.rot_rect)
         self.screen.blit(self.target.sprite, self.target.rect)
         
         self.total_time += self.dt
