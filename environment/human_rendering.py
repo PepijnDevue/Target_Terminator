@@ -56,7 +56,7 @@ class Human_rendering(BaseEnv):
         self.screen.blit(self.background, (0, 0))
 
         self.screen.blit(self.floor.sprite, [0, self.floor.elevation])
-        self.screen.blit(self.agent.sprite, self.agent.rot_rect)
+        self.screen.blit(self.agent.rot_sprite, self.agent.rot_rect)
         self.screen.blit(self.target.sprite, self.target.rect)
         
         self.total_time += self.dt
