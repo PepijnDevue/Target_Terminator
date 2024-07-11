@@ -1,1 +1,1 @@
-from utils.validate_yamls import validate_plane_data, validate_env_data
+from utils.validate_yamls import validate_yaml_data

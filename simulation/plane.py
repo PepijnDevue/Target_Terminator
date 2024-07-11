@@ -34,7 +34,6 @@ class Plane:
     + v: (tuple[float, float]) velocity vector
     + orientation: (int) direction of lift vector
     + flipstart: (float) timer for flip sprite
-    + pos_virtual: (tuple[float, float]) aircraft position on screen
     + AoA_deg: (float) angle of attack in deg
     + pitch_uv: (tuple[float, float]) unitvector corresponding to
     `pitch`
@@ -53,16 +52,48 @@ class Plane:
         self,
         plane_config: str,
         env_config: str,
+        use_gui: bool=False
     ) -> None:
         """
         
         """
         with open(plane_config, 'r') as stream:
             plane_data = yaml.safe_load(stream)
-        assert utils.validate_plane_data(plane_data), "Invalid plane config."
+        assert utils.validate_yaml_data(
+            plane_data, 
+            ((
+                "properties", [
+                    "mass", 
+                    "engine_force",
+                    "agility",
+                    "drag_constant",
+                    "lift_constant",
+                    "critical_aoa_lower_bound",
+                    "critical_aoa_higher_bound",
+                    "lift_coeficient_aoa_0",
+                    "drag_coeficient_aoa_0"
+                ]
+            ), (
+                "starting_config", [
+                    "initial_throttle",
+                    "initial_pitch",
+                    "initial_velocity",
+                    "initial_position",
+                    "size"
+                ]
+            ), (
+                "sprite", [
+                    "side_view_dir",
+                    "top_view_dir"
+                ]
+            ) if use_gui else (_, []))
+    ), "Invalid plane config."
         with open(env_config, 'r') as stream:
             env_data = yaml.safe_load(stream)
-        assert utils.validate_env_data(env_data), "Invalid environment config."
+        assert utils.validate_yaml_data(
+            env_data, 
+            ["window_dimensions", "plane_pos_scale"]
+        ), "Invalid environment config."
 
         self.window_dimensions = env_data["window_dimensions"]
 
@@ -100,7 +131,7 @@ class Plane:
             100
         plane_size = np.array(plane_data["starting_config"]["size"])
         self.sprite = None
-        try:
+        if use_gui:
             # Try and create sprites if in config
             self.sprite = pygame.image.load(
                 plane_data["sprite"]["side_view_dir"]
@@ -125,8 +156,8 @@ class Plane:
 
             # Get rectangle
             self.rot_rect = self.sprite.get_rect(center=plane_pos)
-        except KeyError:
-            # If sprites are not provided, make custom rectangle
+        else:
+            # If no gui, make custom rectangle
             self.rot_rect = pygame.Rect(plane_pos - plane_size // 2, plane_size)
 
     def tick(self, dt: float) -> None:

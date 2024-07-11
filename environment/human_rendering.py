@@ -29,33 +29,29 @@ class Human_rendering(BaseEnv):
             plane_config=plane_config,
             env_config=env_config
         )
+        self._create_background()
 
-    def _create_object_instances(self):
-        self.floor = Ground(
-            height=settings.GROUND["HEIGHT"], 
-            elevation=settings.GROUND["ELEVATION"],
-            coll_elevation=settings.GROUND["COLL_ELEVATION"],
-            sprite=settings.GROUND["SPRITE"],
-            resolution=settings.SCREEN_RESOLUTION
-        )
+    def _create_floor(self)-> None:
+        self.floor = Ground(self.env_config, True)
 
+    def _create_agent(self)-> None:
+        self.agent = Plane(self.plane_config, self.env_config, True)
+
+    def _create_target(self)-> None:
+        self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (settings.SCREEN_RESOLUTION[0] - 50, settings.SCREEN_RESOLUTION[1] / 2))
+
+
+    def _create_background(self)-> None:
         self.background = pygame.image.load("assets/background.png")
         self.background = pygame.transform.scale(
             self.background,
             settings.SCREEN_RESOLUTION
         )
-        
-        self.agent = Plane(
-            self.plane_config,
-            self.env_config
-        )
-
-        self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (settings.SCREEN_RESOLUTION[0] - 50, settings.SCREEN_RESOLUTION[1] / 2))
 
     def render(self):
         self.screen.blit(self.background, (0, 0))
 
-        self.screen.blit(self.floor.sprite, [0, self.floor.elevation])
+        self.screen.blit(self.floor.sprite, [0, self.floor.coll_elevation])
         self.screen.blit(self.agent.rot_sprite, self.agent.rot_rect)
         self.screen.blit(self.target.sprite, self.target.rect)
         

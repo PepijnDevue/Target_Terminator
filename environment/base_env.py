@@ -23,23 +23,17 @@ class BaseEnv():
         self.agent = None
         self.target = None
 
-        self._create_object_instances()
+        self._create_floor()
+        self._create_agent()
+        self._create_target()
 
-    def _create_object_instances(self):
-        """
-        
-        """
-        self.floor = Ground(
-            height=settings.GROUND["HEIGHT"],
-            elevation=settings.GROUND["ELEVATION"],
-            coll_elevation=settings.GROUND["COLL_ELEVATION"],
-        )
-        
-        self.agent = Plane(
-            self.plane_config,
-            self.env_config
-        )
+    def _create_floor(self)-> None:
+        self.floor = Ground(self.env_config)
 
+    def _create_agent(self)-> None:
+        self.agent = Plane(self.plane_config, self.env_config)
+
+    def _create_target(self)-> None:
         self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (settings.SCREEN_RESOLUTION[0] - 50, settings.SCREEN_RESOLUTION[1] / 2))
 
     def _calculate_reward(self, state: np.ndarray)-> float:
@@ -93,12 +87,9 @@ class BaseEnv():
         return self._calculate_observation()
 
     def reset(self, seed: int=42):
-        self.agent = Plane(
-            self.plane_config,
-            self.env_config
-        )
+        self._create_agent()
+        self._create_target()
 
-        self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (settings.SCREEN_RESOLUTION[0] - 50, settings.SCREEN_RESOLUTION[1] / 2))
         return np.append(self.agent.rot_rect.center, self.agent.v), {}
 
         
