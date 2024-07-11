@@ -1,8 +1,8 @@
 import sys
 import os
-sys.path += ["Target_Terminater/", "Target_Terminater/sssets/"]
+sys.path += ["Target_Terminator/", "Target_Terminator/sssets/"]
 try:
-    os.chdir('Target_Terminater/')
+    os.chdir('Target_Terminator/')
 except:
     pass
 
