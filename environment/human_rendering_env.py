@@ -1,5 +1,6 @@
 import pygame
 import os
+import numpy as np
 
 from environment.base_env import BaseEnv
 from simulation.plane import Plane
@@ -62,7 +63,7 @@ class HumanRenderingEnv(BaseEnv):
             settings.SCREEN_RESOLUTION
         )
 
-    def render(self):
+    def render(self)-> None:
         self.screen.blit(self.background, (0, 0))
 
         self.screen.blit(self.floor.sprite, [0, self.floor.coll_elevation])
@@ -73,19 +74,20 @@ class HumanRenderingEnv(BaseEnv):
 
         pygame.display.flip()
         
-    def step(self, action: int):
+    def step(self, action: int)-> np.ndarray:
         step_info = super().step(action=action)
 
         self.render()
 
         return step_info
     
-    def reset(self, seed: int=42):
+    def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
         super().reset()
 
         self.render()
 
 
-    def close(self):
+    def close(self)-> None:
         pygame.display.quit()
         pygame.quit()
+    

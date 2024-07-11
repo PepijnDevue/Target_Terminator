@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 
 from environment.human_rendering_env import HumanRenderingEnv
 
@@ -16,7 +17,7 @@ class HumanControlEnv(HumanRenderingEnv):
             target_config=target_config
         )
 
-    def step(self, action=0):
+    def step(self, action=0)-> np.ndarray:
         action = 0 # action parameter not used for this mode
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -34,4 +35,3 @@ class HumanControlEnv(HumanRenderingEnv):
             action = 5
 
         return super().step(action=action)
-

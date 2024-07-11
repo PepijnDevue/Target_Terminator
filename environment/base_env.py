@@ -1,6 +1,6 @@
 import yaml
-from cerberus import Validator
 import numpy as np
+from cerberus import Validator
 
 from simulation.plane import Plane
 from simulation.target import Target
@@ -86,7 +86,7 @@ class BaseEnv():
             is_truncated, \
             {}            
 
-    def step(self, action: int):
+    def step(self, action: int)-> np.ndarray:
         match action:
             case 0:
                 pass
@@ -106,18 +106,21 @@ class BaseEnv():
 
         return self._calculate_observation()
 
-    def reset(self, seed: int=42):
+    def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
+        """
+        return initial state & info
+        """
         self._create_agent()
         self._create_target()
 
         return np.append(self.agent.rot_rect.center, self.agent.v), {}
 
         
-    def render(self):
+    def render(self)-> None:
         raise NotImplementedError(
             "As this class has no windows/instances to close, \
             this is not implemented. Perhaps you are looking for del."
         )
 
-    def close(self):
+    def close(self)-> None:
         pass
