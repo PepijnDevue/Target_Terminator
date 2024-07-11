@@ -13,7 +13,8 @@ class Human_rendering(BaseEnv):
     def __init__(
         self, 
         plane_config: str="config/i-16_falangist.yaml",
-        env_config: str="config/default_env.yaml"
+        env_config: str="config/default_env.yaml",
+        target_config: str="config/default_target.yaml"
     )-> None:
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
         pygame.init()
@@ -27,8 +28,10 @@ class Human_rendering(BaseEnv):
 
         super().__init__(
             plane_config=plane_config,
-            env_config=env_config
+            env_config=env_config,
+            target_config=target_config
         )
+
         self._create_background()
 
     def _create_floor(self)-> None:
@@ -38,7 +41,7 @@ class Human_rendering(BaseEnv):
         self.agent = Plane(self.plane_config, self.env_config, True)
 
     def _create_target(self)-> None:
-        self.target = Target(self.floor.coll_elevation, settings.TARGET["SPRITE"], (settings.SCREEN_RESOLUTION[0] - 50, settings.SCREEN_RESOLUTION[1] / 2))
+        self.target = Target(self.target_config, True)
 
 
     def _create_background(self)-> None:

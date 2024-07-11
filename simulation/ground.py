@@ -49,7 +49,3 @@ class Ground:
             )
 
         self.coll_elevation = env_data["ground"]["collision_elevation"]
-
-
-
-

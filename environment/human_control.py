@@ -7,11 +7,13 @@ class Human_control(Human_rendering):
     def __init__(
         self, 
         plane_config: str="config/i-16_falangist.yaml",
-        env_config: str="config/default_env.yaml"
+        env_config: str="config/default_env.yaml",
+        target_config: str="config/default_target.yaml"
     )-> None:
         super().__init__(
             plane_config=plane_config,
-            env_config=env_config
+            env_config=env_config,
+            target_config=target_config
         )
 
     def step(self, action=0):
