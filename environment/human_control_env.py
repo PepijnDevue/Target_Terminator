@@ -1,18 +1,23 @@
-from environment.human_rendering import Human_rendering
-
 import pygame
+import numpy as np
+
+from environment.human_rendering_env import HumanRenderingEnv
 
 
-class Human_control(Human_rendering):
+class HumanControlEnv(HumanRenderingEnv):
     def __init__(
         self, 
-        window_size: tuple
+        plane_config: str="config/i-16_falangist.yaml",
+        env_config: str="config/default_env.yaml",
+        target_config: str="config/default_target.yaml"
     )-> None:
         super().__init__(
-            window_size=window_size
+            plane_config=plane_config,
+            env_config=env_config,
+            target_config=target_config
         )
 
-    def step(self, action=0):
+    def step(self, action=0)-> np.ndarray:
         action = 0 # action parameter not used for this mode
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -30,4 +35,3 @@ class Human_control(Human_rendering):
             action = 5
 
         return super().step(action=action)
-

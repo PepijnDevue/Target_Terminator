@@ -1,8 +1,4 @@
-import numpy as np
 import pygame
-import random
-
-import settings
 
 
 class Target:
@@ -11,75 +7,23 @@ class Target:
 
     + coords: (Tuple[int, int]) coördinaten
     + rect: (pygame.rect) rect
-    + sprite: (pygame.surface) sprite
+    + sprite: (pygame.surface | None) sprite
     """
     def __init__(
             self, 
-            ground_height: int, 
-            sprite:str=None, 
-            coords:tuple=None
+            target_data: dict,
+            use_gui: bool=False
         ) -> None:
         """
         Initaliser of the Target class
-
-        :param ground_height: height of the ground (int)
-        :param sprite: path of the image used for the sprite of the
-         target (Default = False) (str)
         """
-        size = settings.TARGET["SIZE"]
-        if coords is None:
-            coords = np.array((
-                random.randint(
-                    size, settings.SCREEN_WIDTH - size
-                ), random.randint(
-                    10, ground_height - size
-                )
-            ))
-        self.rect = pygame.Rect(coords[0], coords[1], size, size)
-        self.rect.center = coords + (np.array([size, size]) / 2)
-        self.sprite = pygame.image.load(sprite)        
-        self.sprite = pygame.transform.scale(self.sprite, (size, size))
 
-        # if settings.USE_GUI:
-        #     pygame.draw.rect(
-        #         surface=pygame.display.get_surface(),
-        #         color="black",
-        #         rect=self.rect
-        #     )
-        #     self.sprite = pygame.image.load(sprite)        
-        #     self.sprite = pygame.transform.scale(self.sprite, (size, size))
-
-
-def load_single_type_targets(
-        ground_height: int, target_count: int
-) -> list[Target]:
-    """
-    This function loads a list of target with the same sprite, the
-     targets cannot overlap.
-    
-    :param ground_height: height of the ground (int)
-    :param target_count: number of target to be loaded (int)
-    :return: list of target (list[Target])
-    """
-
-    targets = [
-        Target(
-            ground_height,
-            settings.TARGET["SPRITE"]
-        ) for _ in range(
-            target_count
-        )
-    ]
-
-    for target1 in targets:
-        for target2 in targets:
-            if target1 != target2:
-                if target1.rect.colliderect(target2.rect):
-                    targets.remove(target2)
-                    targets.append(
-                        Target(
-                            settings.GROUND["HEIGHT"],
-                            settings.TARGET["SPRITE"]
-                        )
-                    )
-    return targets
+        self.rect = pygame.Rect(target_data["position"], target_data["size"])
+        
+        self.sprite = None
+        if use_gui:
+            self.sprite = pygame.image.load(target_data["sprite"])        
+            self.sprite = pygame.transform.scale(
+                self.sprite, 
+                target_data["size"]
+            )

@@ -1,15 +1,12 @@
 import pygame
 import math
-import string
 import time
 import numpy as np
 
-import settings
 
-
-class Aircraft:
+class Plane:
     """
-    Aircraft class.
+    Plane class.
 
     + window_dimensions: (tuple[float, float]) dimensions of window
     + mass: (float) mass of aircraft, in kilogram (Kg).
@@ -32,10 +29,8 @@ class Aircraft:
     + throttle: (float) throttle
     + pitch: (float) pitch in degrees
     + v: (tuple[float, float]) velocity vector
-    + pos_real: (tuple[float, float]) aircraft position in m
     + orientation: (int) direction of lift vector
     + flipstart: (float) timer for flip sprite
-    + pos_virtual: (tuple[float, float]) aircraft position on screen
     + AoA_deg: (float) angle of attack in deg
     + pitch_uv: (tuple[float, float]) unitvector corresponding to
     `pitch`
@@ -44,7 +39,6 @@ class Aircraft:
     + f_engine: (tuple[float, float]) engine force vector
     + f_drag: (tuple[float, float]) drag force vector
     + f_lift: (tuple[float, float]) drag force vector
-    + use_gui: (bool) true if using GUI
     + sprite: (pygame.Surface) side view sprite
     + rot_sprite: (pygame.Surface) side view sprite, rotated
     + rot_rect: (pygame.Rect) rectangle object for pygame
@@ -53,97 +47,59 @@ class Aircraft:
     """
     def __init__(
         self,
-        window_dimensions: tuple[int, int],
-        sprite: string = None,
-        sprite_top: string = None,
-        mass: float = 12,
-        engine_force: float = 10,
-        agility: float = 100,
-        c_drag: float = 0.002,
-        c_lift: float = 0.01,
-        AoA_crit_low: tuple[float, float] = (-15.0, -0.95),
-        AoA_crit_high: tuple[float, float] = (19.0, 1.4),
-        cl0: float = 0.16,
-        cd_min: float = 0.25,
-        init_throttle: float = 0,
-        init_pitch: float = 0,
-        init_v: tuple[float, float] = (0, 0),
-        init_pos: tuple[int, int] = (0, 0),
-        plane_size: tuple[int, int] = (24, 13)
+        plane_data: dict,
+        env_data: dict,
+        use_gui: bool=False
     ) -> None:
         """
-        Initaliser for Aircraft
-
-        :param window_dimensions: dimensions of pygame window
-         (tuple[float, float])
-        :param sprite: filepath to sprite (str)
-        :param sprite_top: filepath to top view sprite (str)
-        :param mass: mass of aircraft in Kilogram (Kg) (float)
-        :param engine_force: constant force applied in direction of
-         heading (pitch) in Newton (N) (float)
-        :param agility: constant torque applied when changing pitch in
-         degrees per second (°/s) (float)
-        :param c_drag: 'constants' used in calculating drag, such as air
-         density and wing area (float)
-        :param c_lift: 'constants' used in calculating lift, such as air
-         density and wing area (float)
-        :param AoA_crit_low: negative critical angle of attack in
-         degrees and its corresponding lift coefficient
-         (tuple[float, float])
-        :param AoA_crit_high: positive critical angle of attack in
-         degrees and its corresponding lift coefficient
-         (tuple[float, float])
-        :param cl0: lift coefficient at AoA == 0 (float)
-        :param cd_min: apex of drag curve; drag coefficient at AoA == 0
-         (float)
-        :param init_throttle: throttle at spawn (%) (float)
-        :param init_pitch: pitch at spawn (°) (float)
-        :param init_v: velocity vector at spawn (tuple[float, float])
-        :param init_pos: real spawn location of aircraft
-         (tuple[float, float])
-        :param plane_size: aircraft sprite dimensions (tuple[int, int])
+        
         """
-        self.window_dimensions = window_dimensions
+        self.window_dimensions = env_data["window_dimensions"]
 
         # Constants
-        self.mass = mass
-        self.engine_force = engine_force
-        self.agility = agility
-        self.const_drag = c_drag
-        self.const_lift = c_lift
-        self.AoA_crit_low = AoA_crit_low
-        self.AoA_crit_high = AoA_crit_high
-        self.cl0 = cl0
-        self.cd_min = cd_min
+        self.mass = plane_data["properties"]["mass"]
+        self.engine_force = plane_data["properties"]["engine_force"]
+        self.agility = plane_data["properties"]["agility"]
+        self.const_drag = plane_data["properties"]["drag_constant"]
+        self.const_lift = plane_data["properties"]["lift_constant"]
+        self.AoA_crit_low = plane_data["properties"]["critical_aoa_lower_bound"]
+        self.AoA_crit_high = plane_data["properties"]["critical_aoa_higher_bound"]
+        self.cl0 = plane_data["properties"]["lift_coeficient_aoa_0"]
+        self.cd_min = plane_data["properties"]["drag_coeficient_aoa_0"]
 
         # Independent Variables
-        self.throttle = init_throttle
-        self.pitch = init_pitch
-        self.v = np.array(init_v)
-        self.pos_real = np.array(init_pos)
+        self.throttle = plane_data["starting_config"]["initial_throttle"]
+        self.pitch = plane_data["starting_config"]["initial_pitch"]
+        self.v = np.array(plane_data["starting_config"]["initial_velocity"])
         self.orientation = 1
         self.flipstart = 0.0
 
         # Dependent variables (oa Numpy containers)
-        self.pos_virtual = (
-            self.pos_real *
-            settings.PLANE_POS_SCALE %
-            self.window_dimensions
-        )
         self.AoA_deg = 0
         self.pitch_uv = np.array([0.0, 0.0])
         self.v_uv = np.array([0.0, 0.0])
-        self.f_gravity = np.array([0.0, 9.81*mass])
+        self.f_gravity = np.array([0.0, 9.81 * self.mass])
         self.f_engine = np.array([0.0, 0.0])
         self.f_drag = np.array([0.0, 0.0])
         self.f_lift = np.array([0.0, 0.0])
 
         # Sprite info
-        self.use_gui = True
-        if sprite == None:
-            self.use_gui = False
-        if self.use_gui:
-            self.sprite = pygame.image.load(sprite)
+        plane_pos = \
+            np.array(env_data["window_dimensions"]) * \
+            np.array(plane_data["starting_config"]["initial_position"]) // \
+            100
+        plane_size = np.array(plane_data["starting_config"]["size"])
+        self.sprite = None
+        if use_gui:
+            # Try and create sprites if in config
+            self.sprite = pygame.image.load(
+                plane_data["sprite"]["side_view_dir"]
+            )
+            self.flipsprite = pygame.image.load(
+                plane_data["sprite"]["top_view_dir"]
+            )
+
+            # Scale sprites
             self.rot_sprite = pygame.transform.scale(
                 self.sprite,
                 plane_size
@@ -152,22 +108,22 @@ class Aircraft:
                 self.sprite,
                 plane_size
             )
-            self.rot_rect = self.sprite.get_rect(center=init_pos)
+            self.flipsprite = pygame.transform.scale(self.flipsprite, plane_size)
 
-            self.rot_rect.centerx = self.pos_virtual[0]
-            self.rot_rect.centery = self.pos_virtual[1]
+            # For flipping or something, idk, ask Finn de Graaf
+            self.spritecontainer = self.sprite
 
-        self.flipsprite = pygame.image.load(sprite_top)
-        self.flipsprite = pygame.transform.scale(self.flipsprite, plane_size)
-        self.spritecontainer = self.sprite
+            # Get rectangle
+            self.rot_rect = self.sprite.get_rect(center=plane_pos)
+        else:
+            # If no gui, make custom rectangle
+            self.rot_rect = pygame.Rect(plane_pos - plane_size // 2, plane_size)
 
-    def tick(self, dt: float, fov: np.ndarray) -> None:
+    def tick(self, dt: float) -> None:
         """
         Update internal state of aircraft over given time interval.
 
         :param dt: time since last frame (s) (float)
-        :param fov: array containing objects within fov_evade 
-         radius (np.ndarray)
         :return: None
         """
 
@@ -211,24 +167,15 @@ class Aircraft:
         # resulting force vector, update velocity & position
         f_res = self.f_engine + self.f_gravity + self.f_drag + self.f_lift
         self.v += dt * f_res / self.mass 
-        self.pos_real += self.v * dt
-        if self.use_gui:
-            self.rot_rect.centerx = self.pos_virtual[0]
-            self.rot_rect.centery = self.pos_virtual[1]
-
+        self.rot_rect.center += self.v * dt
         # induced torque (close enough)
         if self.AoA_deg < self.AoA_crit_low[0]:
             self.adjust_pitch(norm_drag*0.0001*dt)
         if self.AoA_deg > self.AoA_crit_high[0]:
             self.adjust_pitch(-norm_drag*0.0001*dt)
 
-        if self.use_gui:
+        if self.sprite:
             self.flip_update_sprite()
-        self.pos_virtual = (
-            self.pos_real *
-            settings.PLANE_POS_SCALE %
-            self.window_dimensions
-        )
 
     def adjust_pitch(self, dt: float):
         """
@@ -238,7 +185,7 @@ class Aircraft:
         :return: None
         """
         self.pitch = (self.pitch + self.agility * dt) % 360
-        if self.use_gui:
+        if self.sprite:
             self.rot_sprite = pygame.transform.rotate(self.sprite, self.pitch)
             self.rot_rect = self.rot_sprite.get_rect(
                 center=self.sprite.get_rect(center=self.rot_rect.center).center

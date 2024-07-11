@@ -1,0 +1,3 @@
+sprite : "assets/target.png"
+size : [20, 20]
+position : [800, 500] # coordinate of top left most pixel

@@ -6,38 +6,26 @@ class Ground:
     Ground class
 
     + sprite: (pygame.Surface) ground sprite
-    + elevation: (int) pixels from top of screen to top of ground sprite
     + coll_elevation: (int) pixels from top of screen to in-sprite
        ground
     """
     def __init__(
             self, 
-            height: int, 
-            elevation: int, 
-            coll_elevation: int,
-            sprite: str=None,
-            resolution: tuple[int, int]=None
+            env_data: str="config/default_env.yaml",
+            use_gui: bool=False
         )-> None:
         """
         initialiser Ground class
-
-        :param height: height of sprite (int)
-        :param elevation: pixels from top of screen to top of
-        ground sprite (int)
-        :param coll_elevation: pixels from top of screen to in-sprite
-        ground (int)
-        :param sprite: path to sprite (str)
-        :param resolution: resolution of game window (tuple[int, int])
         """
+
         self.sprite = None
-        if sprite:
+        if use_gui:
             self.sprite = pygame.transform.scale(
-                pygame.image.load(sprite), 
-                (resolution[0], height)
+                pygame.image.load(env_data["ground"]["sprite"]), 
+                (
+                    env_data["window_dimensions"][0], 
+                    env_data["ground"]["height"]
+                )
             )
-        self.elevation = elevation
-        self.coll_elevation = coll_elevation
 
-
-
-
+        self.coll_elevation = env_data["ground"]["collision_elevation"]
