@@ -3,21 +3,28 @@ import pygame
 
 class Ground:
     """
-    Ground class
+    Ground class.
 
-    + sprite: (pygame.Surface) ground sprite
-    + coll_elevation: (int) pixels from top of screen to in-sprite
-       ground
+    This class is primarily a container for an image that is collidable
+    with the plane. It is configured to be a floor object
+
+    @public member variables:
+        + sprite (None | pygame.Surface): sprite for ground, if provided
+        + coll_elevation (int): y value (from top) for the collision
     """
     def __init__(
             self, 
-            env_data: str="config/default_env.yaml",
+            env_data: dict,
             use_gui: bool=False
         )-> None:
         """
-        initialiser Ground class
-        """
+        Initializer for Ground class.
 
+        @params:
+            - env_data (dict): environment configuration.
+            See config/default_env.yaml for more info.
+            - use_gui (bool) toggle to try and load sprite or not
+        """
         self.sprite = None
         if use_gui:
             self.sprite = pygame.transform.scale(

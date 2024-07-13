@@ -1,3 +1,10 @@
+##########################################################
+##            Default environment yaml file             ##
+##########################################################
+# NOTE: See validation_templates/environment_template.py # 
+#       for the parameter restrictions                   #
+##########################################################
+
 window_dimensions : [1280, 720]
 plane_pos_scale : 2
 ground:
