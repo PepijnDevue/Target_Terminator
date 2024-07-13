@@ -1,4 +1,7 @@
 import yaml
+import datetime
+import json
+import os
 import numpy as np
 from cerberus import Validator
 
@@ -6,6 +9,8 @@ from simulation.plane import Plane
 from simulation.target import Target
 from simulation.ground import Ground
 from utils.utils import hit_collision_agents
+from utils.numpy_encoder import NumpyEncoder
+from utils.create_path_plots import create_path_plots
 import config.validation_templates as templates
 
 
@@ -19,8 +24,9 @@ class BaseEnv():
         """
         
         """
+        self.current_iteration = 0
+        self.observation_history = {self.current_iteration : []}
         self.dt = 1 / 60
-        self.total_time = 0
         
         validator = Validator()
         with open(plane_config, 'r') as stream:
@@ -104,7 +110,9 @@ class BaseEnv():
                 pass #bullets
         self.agent.tick(self.dt)
 
-        return self._calculate_observation()
+        observation =  self._calculate_observation()
+        self.observation_history[self.current_iteration].append(observation)
+        return observation
 
     def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
         """
@@ -112,6 +120,9 @@ class BaseEnv():
         """
         self._create_agent()
         self._create_target()
+
+        self.current_iteration += 1
+        self.observation_history[self.current_iteration] = []
 
         return np.append(self.agent.rot_rect.center, self.agent.v), {}
 
@@ -123,4 +134,15 @@ class BaseEnv():
         )
 
     def close(self)-> None:
-        pass
+        # Prepare the output folder
+        folder_path = f"output/{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+        os.mkdir(folder_path)
+
+        # Write all the observations to a json file.
+        with open(
+            f"{folder_path}/observation_history.json", "w"
+        ) as outfile: 
+            json.dump(self.observation_history, outfile, cls=NumpyEncoder)
+
+        # Create all the graphs:
+        create_path_plots(folder_path, self.observation_history, self.env_data)
