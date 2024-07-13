@@ -75,8 +75,6 @@ class HumanRenderingEnv(BaseEnv):
         self.screen.blit(self.agent.rot_sprite, self.agent.rot_rect)
         self.screen.blit(self.target.sprite, self.target.rect)
         
-        self.total_time += self.dt
-
         pygame.display.flip()
         
     def step(self, action: int)-> np.ndarray:
@@ -94,3 +92,4 @@ class HumanRenderingEnv(BaseEnv):
     def close(self)-> None:
         pygame.display.quit()
         pygame.quit()
+        super().close()
