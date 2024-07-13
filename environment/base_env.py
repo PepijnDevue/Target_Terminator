@@ -134,15 +134,15 @@ class BaseEnv():
         )
 
     def close(self)-> None:
-        # Prepare the output folder
+        # prepare the output folder
         folder_path = f"output/{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
         os.mkdir(folder_path)
 
-        # Write all the observations to a json file.
+        # write all the observations to a json file
         with open(
             f"{folder_path}/observation_history.json", "w"
         ) as outfile: 
             json.dump(self.observation_history, outfile, cls=NumpyEncoder)
 
-        # Create all the graphs:
+        # create all the graphs
         create_path_plots(folder_path, self.observation_history, self.env_data)
