@@ -1,3 +1,18 @@
+"""
+Target yaml template.
+
+This template can be used to validate the composition of any custom
+target yaml file. This is also already done when creating an actual
+environment.
+
+Minimal viable yaml file looks like (_'s are placeholders for data):
+
+```yaml
+size : [_, _]
+position : [_, _]
+```
+"""
+
 TARGET_TEMPLATE = {
     'sprite' : {
         'required' : False,

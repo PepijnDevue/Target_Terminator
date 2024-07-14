@@ -1,3 +1,32 @@
+"""
+Plane yaml template.
+
+This template can be used to validate the composition of any custom
+plane yaml file. This is also already done when creating an actual
+environment.
+
+Minimal viable yaml file looks like (_'s are placeholders for data):
+
+```yaml
+properties:
+    mass : _
+    engine_force : _
+    agility : _
+    drag_constant : _
+    lift_constant : _
+    critical_aoa_lower_bound : [_, _] 
+    critical_aoa_higher_bound : [_, _]
+    lift_coefficient_aoa_0 : _
+    drag_coefficient_aoa_0 : _
+starting_config:
+    initial_throttle : _
+    initial_pitch : _
+    initial_velocity : [_, _]
+    initial_position : [_, _]
+    size : [_, _] 
+```
+"""
+
 PLANE_TEMPLATE = {
     'sprite' : {
         'required' : False,
@@ -57,11 +86,11 @@ PLANE_TEMPLATE = {
                     {'type': 'number'}
                 ]
             },
-            'lift_coeficient_aoa_0' : {
+            'lift_coefficient_aoa_0' : {
                 'type' : 'number',
                 'min' : 0
             },
-            'drag_coeficient_aoa_0' : {
+            'drag_coefficient_aoa_0' : {
                 'type' : 'number',
                 'min' : 0
             }
