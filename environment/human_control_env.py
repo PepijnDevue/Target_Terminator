@@ -34,7 +34,8 @@ class HumanControlEnv(HumanRenderingEnv):
         This function checks for user input and passes it to the super.
 
         @params:
-            - action (int): action to take. NOTE: IGNORED
+            - action (int): action to take. 
+            NOTE: Parameter is always ignored.
         
         @returns:
             - np.ndarray with observation of resulting conditions

@@ -8,7 +8,7 @@ from cerberus import Validator
 from simulation.plane import Plane
 from simulation.target import Target
 from simulation.ground import Ground
-from utils.utils import hit_collision_agents
+from utils.collision import check_target_agent_collision
 from utils.numpy_encoder import NumpyEncoder
 from utils.create_path_plots import create_path_plots
 import config.validation_templates as templates
@@ -129,7 +129,7 @@ class BaseEnv():
 
         @params:
             - state (np.ndarray): 
-            State contains:
+            state contains:
                 * x (float): x position of plane
                 * y (float): y position of plane
                 * velocity_x (float): velocity of plane in x direction
@@ -150,7 +150,7 @@ class BaseEnv():
         @returns:
             - boolean; True if terminal, False if not
         """
-        return hit_collision_agents([self._target], self._agent)
+        return check_target_agent_collision(self._target, self._agent)
     
     def _check_if_truncated(self)-> bool:
         """
@@ -164,7 +164,9 @@ class BaseEnv():
         """
         return self._agent.rot_rect.bottom >= self._floor.coll_elevation
 
-    def _calculate_observation(self)-> np.ndarray:
+    def _calculate_observation(
+            self
+        )-> tuple[np.ndarray, float, bool, bool, dict]:
         """
         Calculate observation of current conditions.
 
@@ -183,7 +185,11 @@ class BaseEnv():
             but is always empty.
 
         @returns:
-            np.ndarray with observation as described above.
+             - np.ndarray with state
+             - float with reward
+             - bool with is_terminal
+             - bool with is_truncated
+             - dict with info (always empty)
         """
         state = np.append(self._agent.rot_rect.center, self._agent.v)
         is_terminated = self._check_if_terminated()
@@ -267,8 +273,8 @@ class BaseEnv():
         Reset environment.
 
         Will create completely new agent and target.
-        Adds new page to the history dictionary
-        return initial state & info.
+        Adds new page to the history dictionary.
+        Returns initial state & info.
 
         @params:
             - seed (int): seed used to spawn in the agent and target.

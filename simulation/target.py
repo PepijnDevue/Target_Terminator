@@ -3,11 +3,15 @@ import pygame
 
 class Target:
     """
-    Target class
+    Target class.
 
-    + coords: (Tuple[int, int]) coördinaten
-    + rect: (pygame.rect) rect
-    + sprite: (pygame.surface | None) sprite
+    This is basically the same as the Ground class in ground.py,
+    in the sense that it is simply a sprite container that any other
+    object can potentially collide with
+
+    @public member variables:
+        + rect (pygame.Rect): Rectangle that can be used for collisions.
+        + sprite (pygame.Surface | None): Sprite for target.
     """
     def __init__(
             self, 
@@ -15,15 +19,19 @@ class Target:
             use_gui: bool=False
         ) -> None:
         """
-        Initaliser of the Target class
+        Initializer for the Target class.
+
+        @params:
+            - tearget_data (dict): Target configuration. 
+            See config/default_target.yaml for more info.
+            - use_gui (bool): Toggle to try and load sprite or not.
         """
 
         self.rect = pygame.Rect(target_data["position"], target_data["size"])
         
         self.sprite = None
         if use_gui:
-            self.sprite = pygame.image.load(target_data["sprite"])        
             self.sprite = pygame.transform.scale(
-                self.sprite, 
+                pygame.image.load(target_data["sprite"]), 
                 target_data["size"]
             )

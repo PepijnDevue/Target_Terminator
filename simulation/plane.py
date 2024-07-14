@@ -8,6 +8,9 @@ class Plane:
     """
     Plane class.
 
+    This class instantiates a plane that conforms to physics, given the
+    environment.
+
     @public member variables:
         + window_dimensions: (tuple[float, float]) dimensions of window
         + mass: (float) mass of aircraft, in kilogram (Kg).
@@ -46,6 +49,13 @@ class Plane:
         + rot_rect: (pygame.Rect) rectangle object for pygame
         + flipsprite: (pygame.Surface) top view sprite
         + spritecontainer: (pygame.Surface) temp container for `flip()`
+    
+    @public methods:
+    + def tick(dt: float)-> None:
+        Update all the member variables of plane, provided their current
+        states and the provided delta.
+    + def adjust_pitch(dt: float)-> None:
+        Adjust the pitch of the agent, provided the given delta.
     """
     def __init__(
         self,
@@ -57,11 +67,11 @@ class Plane:
         Initializer for Plane class.
 
         @params:
-            - env_data (dict): plane configuration. 
+            - plane_data (dict): Plane configuration. 
             See config/i-16_falangist.yaml for more info.
-            - env_data (dict): environment configuration.
+            - env_data (dict): Environment configuration.
             See config/default_env.yaml for more info.
-            - use_gui (bool) toggle to try and load sprite or not
+            - use_gui (bool): Toggle to try and load sprite or not.
         """
         # Cache window_dimensions, to make lookup a bit faster
         self.window_dimensions = env_data["window_dimensions"]
@@ -134,7 +144,8 @@ class Plane:
         Update internal state of aircraft over given time interval.
 
         @params:
-            - dt (float) time since last frame (in seconds)
+            - dt (float):
+            Delta time over which changes need to be calculated.
         """
 
         # pitch unit vector
@@ -159,7 +170,7 @@ class Plane:
         self.f_engine = self.throttle * 0.1 * self.engine_force * self.pitch_uv
 
         # lift force vector
-        coef_lift = self.lift_curve(self.orientation * self.AoA_deg)
+        coef_lift = self._lift_curve(self.orientation * self.AoA_deg)
         norm_lift = (
             self.const_lift *
             coef_lift *
@@ -185,7 +196,7 @@ class Plane:
             self.adjust_pitch(-norm_drag*0.0001*dt)
 
         if self.sprite:
-            self.flip_update_sprite()
+            self._flip_update_sprite()
 
     def adjust_pitch(self, dt: float)-> None:
         """
@@ -202,22 +213,21 @@ class Plane:
                 center=self.sprite.get_rect(center=self.rot_rect.center).center
             )
 
-    def flip(self):
-        """
-        Flips orientation of the aircraft and starts timer for
-        `flipupdatesprite()`
+    # TODO: CURRENTLY NOT USED, BUT PROBABLY NEEDED IN THE FUTURE
+    # def _flip(self):
+    #     """
+    #     Flips orientation of the aircraft and starts timer for
+    #     `flipupdatesprite()`
 
-        :return: None
-        """
-        if self.flipstart < 0.0000001:
-            self.orientation = -self.orientation
-        self.flipstart = time.time()
+    #     :return: None
+    #     """
+    #     if self.flipstart < 0.0000001:
+    #         self.orientation = -self.orientation
+    #     self.flipstart = time.time()
 
-    def flip_update_sprite(self):
+    def _flip_update_sprite(self):
         """
-        Updates aircraft sprite during orientation flip
-
-        :return: None
+        Updates aircraft sprite during orientation flip.
         """
         if self.flipstart > 0.0000001:
             # show sprite after .25s
@@ -240,12 +250,15 @@ class Plane:
             center=self.sprite.get_rect(center=self.rot_rect.center).center
         )
 
-    def lift_curve(self, AoA: float):
+    def _lift_curve(self, AoA: float)-> float:
         """
         Lift curve function based on critical angles and cl0
 
-        :param AoA: angle of attack
-        :return: lift coefficient at AoA
+        @params:
+            - AoA (float): Angle of attack.
+
+        @returns:
+            - float with lift coefficient at AoA
         """
         if AoA < self.AoA_crit_low[0] - 1:
             return 0.0

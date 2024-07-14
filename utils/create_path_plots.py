@@ -9,6 +9,23 @@ def create_path_plots(
     env_data: dict,
 )-> None:
     """
+    Create plots that display the path of the agent.
+
+    It tries to draw background and floor of the environment on the 
+    figure. Above which it plots the x,y flight history of the agent.
+    It colours this graph in accordance with the normalized reward 
+    provided. It saves the figure in the provided folder. It does this
+    for each of the runs in the observation history
+
+    @params:
+        - folder_path (str): Path to output folder.
+        If this folder does not exist, no new one will be made.
+        - observation_history (dict): Dictionary containing list of 
+        observations per iteration/run.
+        - env_data (dict): Environment configuration.
+            See config/default_env.yaml for more info.
+            In theory, it only needs to contain the window dimensions
+            and preferably the background and floor data
     """
     for iteration, observations in observation_history.items():
         vertices = [(x, y, r) for (x, y, _, _), r, _, _, _ in observations]
@@ -35,6 +52,7 @@ def create_path_plots(
         ax.set_title(f"Flight path for iteration {iteration}.")
 
         # try to plot the backgrounds, if available
+        # if any of these settings are missing, nothing will be plotted
         try:
             background_image = plt.imread(env_data["background"]["sprite"])
             ax.imshow(background_image)
