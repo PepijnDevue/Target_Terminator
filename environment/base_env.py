@@ -162,7 +162,7 @@ class BaseEnv():
         @returns:
             - boolean; True if truncated, False if not
         """
-        return self._agent.rect.center[1] >= self._floor.coll_elevation
+        return self._agent.rect.bottom >= self._floor.coll_elevation
 
     def _calculate_observation(
             self
@@ -191,7 +191,11 @@ class BaseEnv():
              - bool with is_truncated
              - dict with info (always empty)
         """
+<<<<<<< HEAD
         state = np.append(self._agent.rect.center, self._agent._v)
+=======
+        state = np.append(self._agent.rot_rect.center, self._agent.v)
+>>>>>>> main
         is_terminated = self._check_if_terminated()
         is_truncated = self._check_if_truncated()
         return state, \
@@ -244,12 +248,21 @@ class BaseEnv():
                 self._agent.adjust_pitch(-self._dt)
             # increase throttle, to a max of 100
             case 3:
+<<<<<<< HEAD
                 if self._agent._throttle < 100:
                     self._agent._throttle += self._dt*100
             # decrease throttle, to a min of 0
             case 4:
                 if self._agent._throttle > 0:
                     self._agent._throttle -= self._dt*100
+=======
+                if self._agent.throttle < 100:
+                    self._agent.throttle += self._dt*100
+            # decrease throttle, to a min of 0
+            case 4:
+                if self._agent.throttle > 0:
+                    self._agent.throttle -= self._dt*100
+>>>>>>> main
             # shoot a bullet
             case 5:
                 pass #TODO: actually shoot bullets
@@ -293,7 +306,11 @@ class BaseEnv():
 
         # the agent's current coordinates are defined by the centre of 
         # its rect
+<<<<<<< HEAD
         return np.append(self._agent.rect.center, self._agent._v), {}
+=======
+        return np.append(self._agent.rot_rect.center, self._agent.v), {}
+>>>>>>> main
 
     def close(self)-> None:
         """
@@ -312,7 +329,7 @@ class BaseEnv():
 
         # write all the observations to a json file
         with open(
-            f"{folder_path}/observation_history.json", "w"
+            f"{folder_path}/_observation_history.json", "w"
         ) as outfile: 
             json.dump(self._observation_history, outfile, cls=NumpyEncoder)
 
