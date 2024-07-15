@@ -20,6 +20,8 @@ def check_target_agent_collision(
         - bool, True if collision agent is within 10 pixels of the 
         target, False if not.
     """
-    return np.linalg.norm(
+    if np.linalg.norm(
         np.array(agent.rect.center) - target.rect.center
-    ) < 10 #TODO: Why is this 10 pixels? Maybe it can be less?
+    ) < 10: #TODO: Why is this 10 pixels? Maybe it can be less?
+        return True
+    return False
