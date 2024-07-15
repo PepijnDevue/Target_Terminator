@@ -21,7 +21,7 @@ def check_target_agent_collision(
         target, False if not.
     """
     if np.linalg.norm(
-        np.array(agent.rot_rect.center) - target.rect.center
+        np.array(agent.rect.center) - target.rect.center
     ) < 10: #TODO: Why is this 10 pixels? Maybe it can be less?
         return True
     return False

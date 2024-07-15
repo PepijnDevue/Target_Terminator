@@ -1,6 +1,5 @@
 import pygame
 import math
-import time
 import numpy as np
 
 
@@ -12,44 +11,42 @@ class Plane:
     environment.
 
     @public member variables:
-        + window_dimensions: (tuple[float, float]) dimensions of window
-        + mass: (float) mass of aircraft, in kilogram (Kg).
-        + engine_force: (float) constant force applied in direction
-        of `pitch` in Newtons (N)
-        + agility: (float) Degree to which the pitch can change,
-        in degrees per delta.
-        + c_drag: (float) 'constants' when calculating drag,
-        such as air density and wing area
-        + c_lift: (float) 'constants' when calculating lift,
-        such as air density and wing area
-        + AoA_crit_low: (tuple[float, float]) negative critical angle
-        of attack in degrees and its corresponding lift coefficient
-        + AoA_crit_high: (tuple[float, float]) positive critical angle
-        of attack in degrees and its corresponding lift coefficient
-        + cl0: (float) lift coefficient at AoA == 0
-        + cd_min: (float) apex of drag curve; 
-        drag coefficient at AoA == 0
-        + plane_size: (tuple[int, int]) dimensions of aircraft
-        (length, height) in meter (m)
-        + throttle: (float) throttle
-        + pitch: (float) pitch in degrees
-        + v: (tuple[float, float]) velocity vector
-        + orientation: (int) direction of lift vector
-        + flipstart: (float) timer for flip sprite
-        + AoA_deg: (float) angle of attack in deg
-        + pitch_uv: (tuple[float, float]) unitvector corresponding to
-        `pitch`
-        + v_uv: (tuple[float, float]) unitvector corresponding to `v`
-        + f_gravity: (tuple[float, float]) gravity force vector
-        + f_engine: (tuple[float, float]) engine force vector
-        + f_drag: (tuple[float, float]) drag force vector
-        + f_lift: (tuple[float, float]) drag force vector
         + sprite: (pygame.Surface) side view sprite
-        + rot_sprite: (pygame.Surface) side view sprite, rotated
-        + rot_rect: (pygame.Rect) rectangle object for pygame
-        + flipsprite: (pygame.Surface) top view sprite
-        + spritecontainer: (pygame.Surface) temp container for `flip()`
+        + _rect: (pygame.Rect) rectangle object for pygame
     
+    @private member variables:
+    NOTE: normally not explained, as they are private, but here they are
+    kept due to their complexity.
+        - _mass: (float) mass of aircraft, in kilogram (Kg).
+        - _engine_force: (float) constant force applied in direction
+        of `pitch` in Newtons (N)
+        - _agility: (float) Degree to which the pitch can change,
+        in degrees per delta.
+        - _c_drag: (float) 'constants' when calculating drag,
+        such as air density and wing area
+        - _c_lift: (float) 'constants' when calculating lift,
+        such as air density and wing area
+        - _AoA_crit_low: (tuple[float, float]) negative critical angle
+        of attack in degrees and its corresponding lift coefficient
+        - _AoA_crit_high: (tuple[float, float]) positive critical angle
+        of attack in degrees and its corresponding lift coefficient
+        - _cl0: (float) lift coefficient at AoA == 0
+        - _cd_min: (float) apex of drag curve; 
+        drag coefficient at AoA == 0
+        - _plane_size: (tuple[int, int]) dimensions of aircraft
+        (length, height) in meter (m)
+        - _throttle: (float) throttle
+        - _pitch: (float) pitch in degrees
+        - _v: (tuple[float, float]) velocity vector
+        - _AoA_deg: (float) angle of attack in deg
+        - _pitch_uv: (tuple[float, float]) unitvector corresponding to
+        `pitch`
+        - _v_uv: (tuple[float, float]) unitvector corresponding to `v`
+        - _f_gravity: (tuple[float, float]) gravity force vector
+        - _f_engine: (tuple[float, float]) engine force vector
+        - _f_drag: (tuple[float, float]) drag force vector
+        - _f_lift: (tuple[float, float]) drag force vector
+
     @public methods:
     + def tick(dt: float)-> None:
         Update all the member variables of plane, provided their current
@@ -73,35 +70,34 @@ class Plane:
             See config/default_env.yaml for more info.
             - use_gui (bool): Toggle to try and load sprite or not.
         """
-        # Cache window_dimensions, to make lookup a bit faster
-        self.window_dimensions = env_data["window_dimensions"]
-
         # Constants
-        self.mass = plane_data["properties"]["mass"]
-        self.engine_force = plane_data["properties"]["engine_force"]
-        self.agility = plane_data["properties"]["agility"]
-        self.const_drag = plane_data["properties"]["drag_constant"]
-        self.const_lift = plane_data["properties"]["lift_constant"]
-        self.AoA_crit_low = plane_data["properties"]["critical_aoa_lower_bound"]
-        self.AoA_crit_high = plane_data["properties"]["critical_aoa_higher_bound"]
-        self.cl0 = plane_data["properties"]["lift_coefficient_aoa_0"]
-        self.cd_min = plane_data["properties"]["drag_coefficient_aoa_0"]
+        self._mass = plane_data["properties"]["mass"]
+        self._engine_force = plane_data["properties"]["engine_force"]
+        self._agility = plane_data["properties"]["agility"]
+        self._const_drag = plane_data["properties"]["drag_constant"]
+        self._const_lift = plane_data["properties"]["lift_constant"]
+        self._AoA_crit_low = plane_data["properties"][
+            "critical_aoa_lower_bound"
+        ]
+        self._AoA_crit_high = plane_data["properties"][
+            "critical_aoa_higher_bound"
+        ]
+        self._cl0 = plane_data["properties"]["lift_coefficient_aoa_0"]
+        self._cd_min = plane_data["properties"]["drag_coefficient_aoa_0"]
 
         # Independent Variables
-        self.throttle = plane_data["starting_config"]["initial_throttle"]
-        self.pitch = plane_data["starting_config"]["initial_pitch"]
-        self.v = np.array(plane_data["starting_config"]["initial_velocity"])
-        self.orientation = 1
-        self.flipstart = 0.0
+        self._throttle = plane_data["starting_config"]["initial_throttle"]
+        self._pitch = plane_data["starting_config"]["initial_pitch"]
+        self._v = np.array(plane_data["starting_config"]["initial_velocity"])
 
         # Dependent variables (oa Numpy containers)
-        self.AoA_deg = 0
+        self._AoA_deg = 0
         self.pitch_uv = np.array([0.0, 0.0])
-        self.v_uv = np.array([0.0, 0.0])
-        self.f_gravity = np.array([0.0, 9.81 * self.mass])
-        self.f_engine = np.array([0.0, 0.0])
-        self.f_drag = np.array([0.0, 0.0])
-        self.f_lift = np.array([0.0, 0.0])
+        self._v_uv = np.array([0.0, 0.0])
+        self._f_gravity = np.array([0.0, 9.81 * self._mass])
+        self._f_engine = np.array([0.0, 0.0])
+        self._f_drag = np.array([0.0, 0.0])
+        self._f_lift = np.array([0.0, 0.0])
 
         # Sprite info
         plane_pos = \
@@ -109,35 +105,27 @@ class Plane:
             np.array(plane_data["starting_config"]["initial_position"]) // \
             100
         plane_size = np.array(plane_data["starting_config"]["size"])
-        self.sprite = None
+        self.__reference_sprite = None
         if use_gui:
-            # try and create sprites if in config
-            self.sprite = pygame.image.load(
+            self.__reference_sprite = pygame.image.load(
                 plane_data["sprite"]["side_view_dir"]
             )
-            self.flipsprite = pygame.image.load(
-                plane_data["sprite"]["top_view_dir"]
-            )
-
-            # scale sprites
-            self.rot_sprite = pygame.transform.scale(
-                self.sprite,
-                plane_size
-            )
             self.sprite = pygame.transform.scale(
-                self.sprite,
+                self.__reference_sprite,
                 plane_size
             )
-            self.flipsprite = pygame.transform.scale(self.flipsprite, plane_size)
+            # this sprite is used for reference, it is never displayed
+            # it exists for rotation purposes only, as the entire
+            # sprites gets compressed again and again otherwise
+            self.__reference_sprite = pygame.transform.scale(
+                self.__reference_sprite,
+                plane_size
+            )
 
-            # for flipping or something, idk, ask Finn de Graaf
-            self.spritecontainer = self.sprite
-
-            # get rectangle
-            self.rot_rect = self.sprite.get_rect(center=plane_pos)
+            self.rect = self.__reference_sprite.get_rect(center=plane_pos)
         else:
-            # if no gui, make custom rectangle
-            self.rot_rect = pygame.Rect(plane_pos - plane_size // 2, plane_size)
+            # if no gui, make custom rectangle instead
+            self.rect = pygame.Rect(plane_pos - plane_size // 2, plane_size)
 
     def tick(self, dt: float)-> None:
         """
@@ -149,55 +137,55 @@ class Plane:
         """
 
         # pitch unit vector
-        self.pitch_uv[0] = math.cos(-math.pi / 180 * self.pitch)
-        self.pitch_uv[1] = math.sin(-math.pi / 180 * self.pitch)
+        self.pitch_uv[0] = math.cos(-math.pi / 180 * self._pitch)
+        self.pitch_uv[1] = math.sin(-math.pi / 180 * self._pitch)
 
         # velocity unit vector
-        if np.linalg.norm(self.v) != 0:
-            self.v_uv = self.v / np.linalg.norm(self.v)
+        if np.linalg.norm(self._v) != 0:
+            self._v_uv = self._v / np.linalg.norm(self._v)
 
         # angle of attack
-        self.AoA_deg = (
+        self._AoA_deg = (
             math.atan2(self.pitch_uv[0], self.pitch_uv[1]) -
-            math.atan2(self.v[0], self.v[1])
+            math.atan2(self._v[0], self._v[1])
         ) * 180 / math.pi
-        if self.AoA_deg > 180:
-            self.AoA_deg -= 360
-        elif self.AoA_deg < -180:
-            self.AoA_deg += 360
+        if self._AoA_deg > 180:
+            self._AoA_deg -= 360
+        elif self._AoA_deg < -180:
+            self._AoA_deg += 360
 
         # engine force vector
-        self.f_engine = self.throttle * 0.1 * self.engine_force * self.pitch_uv
+        self._f_engine = \
+            self._throttle * \
+            0.1 * \
+            self._engine_force * \
+            self.pitch_uv
 
         # lift force vector
-        coef_lift = self._lift_curve(self.orientation * self.AoA_deg)
+        coef_lift = self._lift_curve(self._AoA_deg)
         norm_lift = (
-            self.const_lift *
+            self._const_lift *
             coef_lift *
-            np.linalg.norm(self.v)**2 *
-            self.orientation
+            np.linalg.norm(self._v)**2
         )
-        self.f_lift[0] = norm_lift * self.v_uv[1]
-        self.f_lift[1] = norm_lift * -self.v_uv[0]
+        self._f_lift[0] = norm_lift * self._v_uv[1]
+        self._f_lift[1] = norm_lift * -self._v_uv[0]
 
         # drag force vector
-        coef_drag = (self.AoA_deg / (math.sqrt(40)))**2 + self.cd_min
-        norm_drag = self.const_drag * coef_drag * np.linalg.norm(self.v) ** 2
-        self.f_drag = -norm_drag * self.v_uv
+        coef_drag = (self._AoA_deg / (math.sqrt(40)))**2 + self._cd_min
+        norm_drag = self._const_drag * coef_drag * np.linalg.norm(self._v) ** 2
+        self._f_drag = -norm_drag * self._v_uv
 
         # resulting force vector, update velocity & position
-        f_res = self.f_engine + self.f_gravity + self.f_drag + self.f_lift
-        self.v += dt * f_res / self.mass 
-        self.rot_rect.center += self.v * dt
+        f_res = self._f_engine + self._f_gravity + self._f_drag + self._f_lift
+        self._v += dt * f_res / self._mass 
+        self.rect.center += self._v * dt
         # induced torque (close enough)
-        if self.AoA_deg < self.AoA_crit_low[0]:
+        if self._AoA_deg < self._AoA_crit_low[0]:
             self.adjust_pitch(norm_drag*0.0001*dt)
-        if self.AoA_deg > self.AoA_crit_high[0]:
+        if self._AoA_deg > self._AoA_crit_high[0]:
             self.adjust_pitch(-norm_drag*0.0001*dt)
-
-        if self.sprite:
-            self._flip_update_sprite()
-
+        
     def adjust_pitch(self, dt: float)-> None:
         """
         Update pitch of aircraft over given time interval.
@@ -206,49 +194,15 @@ class Plane:
             - dt (float): 
             Delta time over which changes need to be calculated.
         """
-        self.pitch = (self.pitch + self.agility * dt) % 360
+        self._pitch = (self._pitch + self._agility * dt) % 360
         if self.sprite:
-            self.rot_sprite = pygame.transform.rotate(self.sprite, self.pitch)
-            self.rot_rect = self.rot_sprite.get_rect(
-                center=self.sprite.get_rect(center=self.rot_rect.center).center
+            self.sprite = pygame.transform.rotate(
+                self.__reference_sprite, 
+                self._pitch
             )
-
-    # TODO: CURRENTLY NOT USED, BUT PROBABLY NEEDED IN THE FUTURE
-    # def _flip(self):
-    #     """
-    #     Flips orientation of the aircraft and starts timer for
-    #     `flipupdatesprite()`
-
-    #     :return: None
-    #     """
-    #     if self.flipstart < 0.0000001:
-    #         self.orientation = -self.orientation
-    #     self.flipstart = time.time()
-
-    def _flip_update_sprite(self):
-        """
-        Updates aircraft sprite during orientation flip.
-        """
-        if self.flipstart > 0.0000001:
-            # show sprite after .25s
-            if .25 < (time.time() - self.flipstart) < .5:
-                self.sprite = self.flipsprite
-            # reset sprite after .5s
-            elif .5 <= (time.time() - self.flipstart):
-                if self.orientation == 1:
-                    self.sprite = self.spritecontainer
-                else:
-                    self.sprite = pygame.transform.flip(
-                        self.spritecontainer, 
-                        0, 
-                        1
-                    )
-                self.flipstart = 0.0
-
-        self.rot_sprite = pygame.transform.rotate(self.sprite, self.pitch)
-        self.rot_rect = self.rot_sprite.get_rect(
-            center=self.sprite.get_rect(center=self.rot_rect.center).center
-        )
+            self.rect = self.sprite.get_rect(
+                center=self.sprite.get_rect(center=self.rect.center).center
+            )
 
     def _lift_curve(self, AoA: float)-> float:
         """
@@ -260,20 +214,22 @@ class Plane:
         @returns:
             - float with lift coefficient at AoA
         """
-        if AoA < self.AoA_crit_low[0] - 1:
+        if AoA < self._AoA_crit_low[0] - 1:
             return 0.0
-        elif self.AoA_crit_low[0] - 1 <= AoA < self.AoA_crit_low[0]:
-            return self.AoA_crit_low[1] * abs(self.AoA_crit_low[0] - 1 - AoA)
-        elif self.AoA_crit_low[0] <= AoA < 0.0:
-            b = self.cl0 - self.AoA_crit_low[1]
-            c = AoA / self.AoA_crit_low[0]
-            return self.cl0 - b * c
-        elif 0.0 <= AoA < self.AoA_crit_high[0]:
-            b = self.AoA_crit_high[1] - self.cl0
-            c = AoA / self.AoA_crit_high[0]
-            return self.cl0 + b * c
-        elif self.AoA_crit_high[0] <= AoA < self.AoA_crit_high[0] + 1:
-            return self.AoA_crit_high[1] * abs(self.AoA_crit_high[0] - 1 - AoA)
+        elif self._AoA_crit_low[0] - 1 <= AoA < self._AoA_crit_low[0]:
+            return self._AoA_crit_low[1] * abs(self._AoA_crit_low[0] - 1 - AoA)
+        elif self._AoA_crit_low[0] <= AoA < 0.0:
+            b = self._cl0 - self._AoA_crit_low[1]
+            c = AoA / self._AoA_crit_low[0]
+            return self._cl0 - b * c
+        elif 0.0 <= AoA < self._AoA_crit_high[0]:
+            b = self._AoA_crit_high[1] - self._cl0
+            c = AoA / self._AoA_crit_high[0]
+            return self._cl0 + b * c
+        elif self._AoA_crit_high[0] <= AoA < self._AoA_crit_high[0] + 1:
+            return self._AoA_crit_high[1] * abs(
+                self._AoA_crit_high[0] - 1 - AoA
+            )
         else:
             return 0
 
