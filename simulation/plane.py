@@ -12,7 +12,9 @@ class Plane:
 
     @public member variables:
         + sprite: (pygame.Surface) side view sprite
-        + _rect: (pygame.Rect) rectangle object for pygame
+        + rect: (pygame.Rect) rectangle object for pygame
+        + throttle: (float) throttle
+        + v: (tuple[float, float]) velocity vector
     
     @private member variables:
     NOTE: normally not explained, as they are private, but here they are
@@ -35,9 +37,7 @@ class Plane:
         drag coefficient at AoA == 0
         - _plane_size: (tuple[int, int]) dimensions of aircraft
         (length, height) in meter (m)
-        - _throttle: (float) throttle
         - _pitch: (float) pitch in degrees
-        - _v: (tuple[float, float]) velocity vector
         - _AoA_deg: (float) angle of attack in deg
         - _pitch_uv: (tuple[float, float]) unitvector corresponding to
         `pitch`
@@ -86,9 +86,9 @@ class Plane:
         self._cd_min = plane_data["properties"]["drag_coefficient_aoa_0"]
 
         # Independent Variables
-        self._throttle = plane_data["starting_config"]["initial_throttle"]
+        self.throttle = plane_data["starting_config"]["initial_throttle"]
         self._pitch = plane_data["starting_config"]["initial_pitch"]
-        self._v = np.array(plane_data["starting_config"]["initial_velocity"])
+        self.v = np.array(plane_data["starting_config"]["initial_velocity"])
 
         # Dependent variables (oa Numpy containers)
         self._AoA_deg = 0
@@ -141,13 +141,13 @@ class Plane:
         self.pitch_uv[1] = math.sin(-math.pi / 180 * self._pitch)
 
         # velocity unit vector
-        if np.linalg.norm(self._v) != 0:
-            self._v_uv = self._v / np.linalg.norm(self._v)
+        if np.linalg.norm(self.v) != 0:
+            self._v_uv = self.v / np.linalg.norm(self.v)
 
         # angle of attack
         self._AoA_deg = (
             math.atan2(self.pitch_uv[0], self.pitch_uv[1]) -
-            math.atan2(self._v[0], self._v[1])
+            math.atan2(self.v[0], self.v[1])
         ) * 180 / math.pi
         if self._AoA_deg > 180:
             self._AoA_deg -= 360
@@ -156,7 +156,7 @@ class Plane:
 
         # engine force vector
         self._f_engine = \
-            self._throttle * \
+            self.throttle * \
             0.1 * \
             self._engine_force * \
             self.pitch_uv
@@ -166,20 +166,20 @@ class Plane:
         norm_lift = (
             self._const_lift *
             coef_lift *
-            np.linalg.norm(self._v)**2
+            np.linalg.norm(self.v)**2
         )
         self._f_lift[0] = norm_lift * self._v_uv[1]
         self._f_lift[1] = norm_lift * -self._v_uv[0]
 
         # drag force vector
         coef_drag = (self._AoA_deg / (math.sqrt(40)))**2 + self._cd_min
-        norm_drag = self._const_drag * coef_drag * np.linalg.norm(self._v) ** 2
+        norm_drag = self._const_drag * coef_drag * np.linalg.norm(self.v) ** 2
         self._f_drag = -norm_drag * self._v_uv
 
         # resulting force vector, update velocity & position
         f_res = self._f_engine + self._f_gravity + self._f_drag + self._f_lift
-        self._v += dt * f_res / self._mass 
-        self.rect.center += self._v * dt
+        self.v += dt * f_res / self._mass 
+        self.rect.center += self.v * dt
         # induced torque (close enough)
         if self._AoA_deg < self._AoA_crit_low[0]:
             self.adjust_pitch(norm_drag*0.0001*dt)
