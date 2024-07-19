@@ -162,7 +162,7 @@ class BaseEnv():
         @returns:
             - boolean; True if truncated, False if not
         """
-        return self._agent.rot_rect.bottom >= self._floor.coll_elevation
+        return self._agent.rect.bottom >= self._floor.coll_elevation
 
     def _calculate_observation(
             self
@@ -191,7 +191,7 @@ class BaseEnv():
              - bool with is_truncated
              - dict with info (always empty)
         """
-        state = np.append(self._agent.rot_rect.center, self._agent.v)
+        state = np.append(self._agent.rect.center, self._agent.v)
         is_terminated = self._check_if_terminated()
         is_truncated = self._check_if_truncated()
         return state, \
@@ -293,7 +293,7 @@ class BaseEnv():
 
         # the agent's current coordinates are defined by the centre of 
         # its rect
-        return np.append(self._agent.rot_rect.center, self._agent.v), {}
+        return np.append(self._agent.rect.center, self._agent.v), {}
 
     def close(self)-> None:
         """

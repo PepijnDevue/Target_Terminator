@@ -127,7 +127,7 @@ class HumanRenderingEnv(BaseEnv):
         self.screen.blit(self._background, (0, 0))
 
         self.screen.blit(self._floor.sprite, [0, self._floor.coll_elevation])
-        self.screen.blit(self._agent.rot_sprite, self._agent.rot_rect)
+        self.screen.blit(self._agent.sprite, self._agent.rect)
         self.screen.blit(self._target.sprite, self._target.rect)
         
         pygame.display.flip()
@@ -169,11 +169,11 @@ class HumanRenderingEnv(BaseEnv):
         
         @returns:
             - np.ndarray with initial state 
-            (see self._calculate_observation())
+            (see self._calculate_observation()).
             - dict with info, made for compatibility with Gym 
             environment, but is always empty.
         """
-        output = super().reset()
+        output = super().reset(seed=seed)
 
         self._render()
 
