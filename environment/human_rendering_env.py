@@ -179,7 +179,12 @@ class HumanRenderingEnv(BaseEnv):
 
         return output
 
-    def close(self)-> None:
+    def close(
+        self,
+        save_json: bool=False, 
+        save_figs: bool=False, 
+        figs_stride: int=1
+    )-> None:
         """
         Close environment and output history.
 
@@ -188,7 +193,15 @@ class HumanRenderingEnv(BaseEnv):
             - a json file with the entire observation history.
             - an image per iteration, which displays the flown path of 
             the agent, along with the reward (indicated by the colour).
+
+        @params:
+            - save_json (bool): Save json or not.
+            - save_figs (bool): Save the plots or not.
         """
         pygame.display.quit()
         pygame.quit()
-        super().close()
+        super().close(
+            save_json=save_json, 
+            save_figs=save_figs,
+            figs_stride=figs_stride
+        )

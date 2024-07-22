@@ -106,6 +106,7 @@ class Plane:
             100
         plane_size = np.array(plane_data["starting_config"]["size"])
         self.__reference_sprite = None
+        self.sprite = None
         if use_gui:
             self.__reference_sprite = pygame.image.load(
                 plane_data["sprite"]["side_view_dir"]
