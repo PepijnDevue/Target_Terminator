@@ -128,7 +128,7 @@ class BaseEnv():
         Reward function for environment.
 
         Reward is equal to the negative of the absolute distance from
-        the agent to the target, divided by the maximal distance the 
+        the agent to the target, divided by the maximum distance the 
         plane could travel, to normalize it.
 
         NOTE: function does not check for validity of state parameter
