@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import numpy as np
+import time
 from cerberus import Validator
 
 from simulation.plane import Plane
@@ -54,6 +55,17 @@ class BaseEnv():
             configuration. See config/default_target.yaml for more 
             info.
         """
+        # PROFILING
+        self.base_env_timings = {
+            "__init__" : [1, 0], 
+            "_calculate_observation" : [0, 0],
+            "step" : [0, 0],
+            "reset" : [0, 0],
+            "close" : [0, 0]
+        }
+        # PROFILING
+        start = time.time()
+
         # for saving the observation history, used in self.close()
         self._current_iteration = 0
         self._observation_history = {self._current_iteration : []}
@@ -98,6 +110,9 @@ class BaseEnv():
         self._create_floor()
         self._create_agent()
         self._create_target()
+
+        # PROFILING
+        self.base_env_timings["__init__"][1] = time.time() - start
 
     def _create_floor(self)-> None:
         """
@@ -169,10 +184,14 @@ class BaseEnv():
         @returns:
             - boolean; True if truncated, False if not
         """
-        return self._agent.rect.bottom >= self._floor.coll_elevation or \
-        self._agent.rect.top < -10 or \
-        self._agent.rect.left < -10 or \
-        self._agent.rect.right > self._env_data["window_dimensions"][0] + 10
+        agent_rect = self._agent.rect
+        window_width = self._env_data["window_dimensions"][0]
+        return (
+            agent_rect.bottom >= self._floor.coll_elevation or
+            agent_rect.top < -10 or
+            agent_rect.left < -10 or
+            agent_rect.right > window_width + 10
+        )
 
     def _calculate_observation(
             self
@@ -201,16 +220,26 @@ class BaseEnv():
              - bool with is_truncated
              - dict with info (always empty)
         """
+        # PROFILING
+        start = time.time()
+    
         state = np.append(self._agent.rect.center, self._agent.v)
         is_terminated = self._check_if_terminated()
         is_truncated = self._check_if_truncated()
-        return state, \
-            self._calculate_reward(state) + \
-                (is_terminated * 100_000) + \
-                (is_truncated * -1_000_000), \
-            is_terminated, \
-            is_truncated, \
-            {}            
+        reward = self._calculate_reward(state)
+        
+        if is_terminated:
+            reward += 100_000
+        if is_truncated:
+            reward -= 1_000_000
+
+        observation = (state, reward, is_terminated, is_truncated, {})
+        
+        # PROFILING
+        self.base_env_timings["_calculate_observation"][0] += 1
+        self.base_env_timings["_calculate_observation"][1] += time.time() - start
+        
+        return observation
 
     def _render(self)-> None:
         """
@@ -232,7 +261,7 @@ class BaseEnv():
 
         @params:
             - action (int): one of:
-                * 0:  do nothing
+                * 0: do nothing
                 * 1: adjust pitch upwards
                 * 2: adjust pitch downwards
                 * 3: increase throttle
@@ -242,33 +271,35 @@ class BaseEnv():
         @returns:
             - np.ndarray with observation of resulting conditions
         """
-        match action:
-            # do nothing
-            case 0:
-                pass
-            # adjust pitch upwards
-            case 1:
-                self._agent.adjust_pitch(self._dt)
-            # adjust pitch downwards
-            case 2:
-                self._agent.adjust_pitch(-self._dt)
-            # increase throttle, to a max of 100
-            case 3:
-                if self._agent.throttle < 100:
-                    self._agent.throttle += self._dt*100
-            # decrease throttle, to a min of 0
-            case 4:
-                if self._agent.throttle > 0:
-                    self._agent.throttle -= self._dt*100
-            # shoot a bullet
-            case 5:
-                raise NotImplementedError("shooting is not yet possible")
-            # any other actions are invalids
-            case _:
-                raise ValueError(
-                    f"Provided with action {action}, "
-                    "which is not one of [0,1,2,3,4,5]"
-                )
+        # PROFILING
+        start = time.time()
+
+        # do nothing
+        if action == 0:
+            pass
+        # adjust pitch upwards
+        elif action == 1:
+            self._agent.adjust_pitch(self._dt)
+        # adjust pitch downwards
+        elif action == 2:
+            self._agent.adjust_pitch(-self._dt)
+        # increase throttle, to a max of 100
+        elif action == 3:
+            if self._agent.throttle < 100:
+                self._agent.throttle += self._dt * 100
+        # decrease throttle, to a min of 0
+        elif action == 4:
+            if self._agent.throttle > 0:
+                self._agent.throttle -= self._dt * 100
+        # shoot a bullet
+        elif action == 5:
+            raise NotImplementedError("shooting is not yet possible")
+        # any other actions are invalid
+        else:
+            raise ValueError(
+                f"Provided with action {action}, "
+                "which is not one of [0,1,2,3,4,5]"
+            )
         
         # update the agent with adjusted settings
         self._agent.tick(self._dt)
@@ -276,6 +307,11 @@ class BaseEnv():
         # calculate, save, and return observation in current conditions
         observation = self._calculate_observation()
         self._observation_history[self._current_iteration].append(observation)
+
+        # PROFILING
+        self.base_env_timings["step"][0] += 1
+        self.base_env_timings["step"][1] += time.time() - start
+
         return observation
 
     def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
@@ -295,11 +331,18 @@ class BaseEnv():
             - dict with info, made for compatibility with Gym 
             environment, but is always empty.
         """
+        # PROFILING
+        start = time.time()
+
         self._create_agent()
         self._create_target()
 
         self._current_iteration += 1
         self._observation_history[self._current_iteration] = []
+
+        # PROFILING
+        self.base_env_timings["reset"][0] += 1
+        self.base_env_timings["reset"][1] += time.time() - start
 
         # the agent's current coordinates are defined by the centre of 
         # its rect
@@ -325,6 +368,9 @@ class BaseEnv():
             - save_figs (bool): Save the plots or not.
             - figs_stride (int): Stride for saving the figures.
         """
+        # PROFILING
+        start = time.time()
+
         # prepare the output folder
         if save_json or save_figs:
             folder_path = "output/" \
@@ -346,3 +392,16 @@ class BaseEnv():
                 self._env_data,
                 figs_stride
             )
+
+        # PROFILING
+        self.base_env_timings["close"][0] += 1
+        self.base_env_timings["close"][1] += time.time() - start
+
+    # PROFILING
+    def print_profiling(self) -> None:
+        print("\033[37;1mBaseEnv profiling:\033[37;0m")
+        print(f"{'Function Name':<30} {'Total Calls':<15} {'Time (s)':<14} {'Avg Time per Call (s)':<24}")
+        print("="*85)
+        for function_name, (n_calls, time) in self.base_env_timings.items():
+            avg_time = time / n_calls if n_calls else 0
+            print(f"{function_name:<30} {n_calls:<15} {time:<14.4f} {avg_time:<24.4f}")
