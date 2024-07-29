@@ -169,7 +169,10 @@ class BaseEnv():
         @returns:
             - boolean; True if truncated, False if not
         """
-        return self._agent.rect.bottom >= self._floor.coll_elevation
+        return self._agent.rect.bottom >= self._floor.coll_elevation or \
+        self._agent.rect.top < -10 or \
+        self._agent.rect.left < -10 or \
+        self._agent.rect.right > self._env_data["window_dimensions"][0] + 10
 
     def _calculate_observation(
             self
@@ -203,8 +206,8 @@ class BaseEnv():
         is_truncated = self._check_if_truncated()
         return state, \
             self._calculate_reward(state) + \
-                (is_terminated * 50_000) + \
-                (is_truncated * -5_000), \
+                (is_terminated * 100_000) + \
+                (is_truncated * -1_000_000), \
             is_terminated, \
             is_truncated, \
             {}            
@@ -259,8 +262,8 @@ class BaseEnv():
                     self._agent.throttle -= self._dt*100
             # shoot a bullet
             case 5:
-                pass #TODO: actually shoot bullets
-            # any other actions are invalid
+                raise NotImplementedError("shooting is not yet possible")
+            # any other actions are invalids
             case _:
                 raise ValueError(
                     f"Provided with action {action}, "
