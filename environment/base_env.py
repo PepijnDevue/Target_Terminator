@@ -84,6 +84,11 @@ class BaseEnv():
             templates.TARGET_TEMPLATE
         ),f"A validation error occurred in the target data: {validator.errors}"
 
+        # calculate max distance, to normalize reward
+        self._max_distance = np.linalg.norm(
+            self._env_data["window_dimensions"]
+        )
+
         # reserve memory for necessary member objects
         self._floor = None
         self._agent = None
@@ -123,7 +128,8 @@ class BaseEnv():
         Reward function for environment.
 
         Reward is equal to the negative of the absolute distance from
-        the agent to the target.
+        the agent to the target, divided by the maximum distance the 
+        plane could travel, to normalize it.
 
         NOTE: function does not check for validity of state parameter
 
@@ -138,7 +144,8 @@ class BaseEnv():
         @returns:
             - float with reward.
         """
-        return -np.linalg.norm(state[:2] - self._target.rect.center)
+        return -100 * np.linalg.norm(state[:2] - self._target.rect.center) / \
+            self._max_distance
 
     def _check_if_terminated(self)-> bool:
         """
@@ -162,7 +169,10 @@ class BaseEnv():
         @returns:
             - boolean; True if truncated, False if not
         """
-        return self._agent.rect.bottom >= self._floor.coll_elevation
+        return self._agent.rect.bottom >= self._floor.coll_elevation or \
+        self._agent.rect.top < -10 or \
+        self._agent.rect.left < -10 or \
+        self._agent.rect.right > self._env_data["window_dimensions"][0] + 10
 
     def _calculate_observation(
             self
@@ -196,8 +206,8 @@ class BaseEnv():
         is_truncated = self._check_if_truncated()
         return state, \
             self._calculate_reward(state) + \
-                (is_terminated * 1_000_000) + \
-                (is_truncated * 1_000_000_000), \
+                (is_terminated * 100_000) + \
+                (is_truncated * -1_000_000), \
             is_terminated, \
             is_truncated, \
             {}            
@@ -252,8 +262,8 @@ class BaseEnv():
                     self._agent.throttle -= self._dt*100
             # shoot a bullet
             case 5:
-                pass #TODO: actually shoot bullets
-            # any other actions are invalid
+                raise NotImplementedError("shooting is not yet possible")
+            # any other actions are invalids
             case _:
                 raise ValueError(
                     f"Provided with action {action}, "
@@ -295,30 +305,44 @@ class BaseEnv():
         # its rect
         return np.append(self._agent.rect.center, self._agent.v), {}
 
-    def close(self)-> None:
+    def close(
+        self, 
+        save_json: bool=False, 
+        save_figs: bool=False, 
+        figs_stride: int=1
+    )-> None:
         """
         Close environment and output history.
 
-        Will create a folder indicated by the current date and time
-        in which resides:
+        Will create a folder indicated by the current date and time, 
+        provided save == True in which resides:
             - a json file with the entire observation history.
             - an image per iteration, which displays the flown path of 
             the agent, along with the reward (indicated by the colour).
+        
+        @params:
+            - save_json (bool): Save json or not.
+            - save_figs (bool): Save the plots or not.
+            - figs_stride (int): Stride for saving the figures.
         """
         # prepare the output folder
-        folder_path = "output/" \
-           f"{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
-        os.mkdir(folder_path)
+        if save_json or save_figs:
+            folder_path = "output/" \
+            f"{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+            os.mkdir(folder_path)
 
         # write all the observations to a json file
-        with open(
-            f"{folder_path}/_observation_history.json", "w"
-        ) as outfile: 
-            json.dump(self._observation_history, outfile, cls=NumpyEncoder)
+        if save_json:
+            with open(
+                f"{folder_path}/_observation_history.json", "w"
+            ) as outfile: 
+                json.dump(self._observation_history, outfile, cls=NumpyEncoder)
 
         # create all the graphs and save them to the `folder_path`
-        create_path_plots(
-            folder_path, 
-            self._observation_history, 
-            self._env_data
-        )
+        if save_figs:
+            create_path_plots(
+                folder_path, 
+                self._observation_history, 
+                self._env_data,
+                figs_stride
+            )
