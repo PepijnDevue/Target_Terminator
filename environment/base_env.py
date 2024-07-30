@@ -3,7 +3,6 @@ import datetime
 import json
 import os
 import numpy as np
-import time
 from cerberus import Validator
 
 from simulation.plane import Plane
