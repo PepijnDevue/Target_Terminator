@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 import numpy as np
 
 
@@ -57,7 +58,6 @@ class Plane:
     def __init__(
         self,
         plane_data: dict,
-        env_data: dict,
         use_gui: bool=False
     )-> None:
         """
@@ -66,8 +66,6 @@ class Plane:
         @params:
             - plane_data (dict): Plane configuration. 
             See config/i-16_falangist.yaml for more info.
-            - env_data (dict): Environment configuration.
-            See config/default_env.yaml for more info.
             - use_gui (bool): Toggle to try and load sprite or not.
         """
         # Constants
@@ -100,10 +98,14 @@ class Plane:
         self._f_lift = np.array([0.0, 0.0])
 
         # Sprite info
-        plane_pos = \
-            np.array(env_data["window_dimensions"]) * \
-            np.array(plane_data["starting_config"]["initial_position"]) // \
-            100
+        plane_pos = [
+            coord + 
+            random.uniform(
+                -plane_data["starting_config"]["position_px_deviation"], 
+                plane_data["starting_config"]["position_px_deviation"]
+            ) for coord in plane_data["starting_config"]["initial_position"]
+        ]
+
         plane_size = np.array(plane_data["starting_config"]["size"])
         self.__reference_sprite = None
         self.sprite = None

@@ -1,4 +1,5 @@
 import pygame
+import random
 
 
 class Target:
@@ -27,7 +28,15 @@ class Target:
             - use_gui (bool): Toggle to try and load sprite or not.
         """
 
-        self.rect = pygame.Rect(target_data["position"], target_data["size"])
+        position = [
+            coord + 
+            random.uniform(
+                -target_data["position_px_deviation"], 
+                target_data["position_px_deviation"]
+            ) for coord in target_data["position"]
+        ]
+
+        self.rect = pygame.Rect(position, target_data["size"])
         
         self.sprite = None
         if use_gui:

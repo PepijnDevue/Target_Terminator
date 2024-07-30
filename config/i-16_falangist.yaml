@@ -22,5 +22,6 @@ starting_config:
     initial_throttle : 100 # percentage
     initial_pitch : 0 # in degrees
     initial_velocity : [100.0, 0.0] # velocity vector
-    initial_position : [0, 50] # in percentages of screen dimensions
+    initial_position : [100, 300] # coordinate of top left most pixel
+    position_px_deviation : 100 # amount of pixels the position can deviate
     size : [24, 12]  # 6.13 : 3.25 irl

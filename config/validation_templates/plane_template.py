@@ -23,6 +23,7 @@ starting_config:
     initial_pitch : _
     initial_velocity : [_, _]
     initial_position : [_, _]
+    position_px_deviation : _
     size : [_, _] 
 ```
 """
@@ -127,6 +128,11 @@ PLANE_TEMPLATE = {
                     {'type' : 'integer', 'min' : 0}, 
                     {'type': 'integer', 'min' : 0}
                 ]
+            },
+            'position_px_deviation' : {
+                'required' : True,
+                'type' : 'number',
+                'min' : 0
             },
             'size' : {
                 'required' : True,

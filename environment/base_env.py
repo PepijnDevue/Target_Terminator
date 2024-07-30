@@ -2,6 +2,7 @@ import yaml
 import datetime
 import json
 import os
+import random
 import numpy as np
 from cerberus import Validator
 
@@ -113,7 +114,7 @@ class BaseEnv():
 
         Use plane and environment data to create Plane object.
         """
-        self._agent = Plane(self._plane_data, self._env_data)
+        self._agent = Plane(self._plane_data)
 
     def _create_target(self)-> None:
         """
@@ -300,6 +301,7 @@ class BaseEnv():
             - dict with info, made for compatibility with Gym 
             environment, but is always empty.
         """
+        random.seed(seed)
         self._create_agent()
         self._create_target()
 
