@@ -229,9 +229,9 @@ class BaseEnv():
         reward = self._calculate_reward(state)
         
         if is_terminated:
-            reward += 100_000
+            reward += 200
         if is_truncated:
-            reward -= 1_000_000
+            reward -= 100
 
         observation = (state, reward, is_terminated, is_truncated, {})
         
