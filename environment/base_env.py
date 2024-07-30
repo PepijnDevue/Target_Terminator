@@ -169,10 +169,14 @@ class BaseEnv():
         @returns:
             - boolean; True if truncated, False if not
         """
-        return self._agent.rect.bottom >= self._floor.coll_elevation or \
-        self._agent.rect.top < -10 or \
-        self._agent.rect.left < -10 or \
-        self._agent.rect.right > self._env_data["window_dimensions"][0] + 10
+        agent_rect = self._agent.rect
+        window_width = self._env_data["window_dimensions"][0]
+        return (
+            agent_rect.bottom >= self._floor.coll_elevation or
+            agent_rect.top < -10 or
+            agent_rect.left < -10 or
+            agent_rect.right > window_width + 10
+        )
 
     def _calculate_observation(
             self
@@ -204,13 +208,14 @@ class BaseEnv():
         state = np.append(self._agent.rect.center, self._agent.v)
         is_terminated = self._check_if_terminated()
         is_truncated = self._check_if_truncated()
-        return state, \
-            self._calculate_reward(state) + \
-                (is_terminated * 100_000) + \
-                (is_truncated * -1_000_000), \
-            is_terminated, \
-            is_truncated, \
-            {}            
+        reward = self._calculate_reward(state)
+        
+        if is_terminated:
+            reward += 200
+        if is_truncated:
+            reward -= 100
+
+        return(state, reward, is_terminated, is_truncated, {})
 
     def _render(self)-> None:
         """
@@ -232,7 +237,7 @@ class BaseEnv():
 
         @params:
             - action (int): one of:
-                * 0:  do nothing
+                * 0: do nothing
                 * 1: adjust pitch upwards
                 * 2: adjust pitch downwards
                 * 3: increase throttle
@@ -242,33 +247,32 @@ class BaseEnv():
         @returns:
             - np.ndarray with observation of resulting conditions
         """
-        match action:
-            # do nothing
-            case 0:
-                pass
-            # adjust pitch upwards
-            case 1:
-                self._agent.adjust_pitch(self._dt)
-            # adjust pitch downwards
-            case 2:
-                self._agent.adjust_pitch(-self._dt)
-            # increase throttle, to a max of 100
-            case 3:
-                if self._agent.throttle < 100:
-                    self._agent.throttle += self._dt*100
-            # decrease throttle, to a min of 0
-            case 4:
-                if self._agent.throttle > 0:
-                    self._agent.throttle -= self._dt*100
-            # shoot a bullet
-            case 5:
-                raise NotImplementedError("shooting is not yet possible")
-            # any other actions are invalids
-            case _:
-                raise ValueError(
-                    f"Provided with action {action}, "
-                    "which is not one of [0,1,2,3,4,5]"
-                )
+        # do nothing
+        if action == 0:
+            pass
+        # adjust pitch upwards
+        elif action == 1:
+            self._agent.adjust_pitch(self._dt)
+        # adjust pitch downwards
+        elif action == 2:
+            self._agent.adjust_pitch(-self._dt)
+        # increase throttle, to a max of 100
+        elif action == 3:
+            if self._agent.throttle < 100:
+                self._agent.throttle += self._dt * 100
+        # decrease throttle, to a min of 0
+        elif action == 4:
+            if self._agent.throttle > 0:
+                self._agent.throttle -= self._dt * 100
+        # shoot a bullet
+        elif action == 5:
+            raise NotImplementedError("shooting is not yet possible")
+        # any other actions are invalid
+        else:
+            raise ValueError(
+                f"Provided with action {action}, "
+                "which is not one of [0,1,2,3,4,5]"
+            )
         
         # update the agent with adjusted settings
         self._agent.tick(self._dt)
@@ -276,6 +280,7 @@ class BaseEnv():
         # calculate, save, and return observation in current conditions
         observation = self._calculate_observation()
         self._observation_history[self._current_iteration].append(observation)
+
         return observation
 
     def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
