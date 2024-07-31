@@ -1,6 +1,5 @@
 import pygame
 import math
-import random
 import numpy as np
 
 
@@ -98,13 +97,11 @@ class Plane:
         self._f_lift = np.array([0.0, 0.0])
 
         # Sprite info
-        plane_pos = [
-            coord + 
-            random.uniform(
-                -plane_data["starting_config"]["position_px_deviation"], 
-                plane_data["starting_config"]["position_px_deviation"]
-            ) for coord in plane_data["starting_config"]["initial_position"]
-        ]
+        plane_pos = np.array(np.random.uniform(
+            -plane_data["starting_config"]["position_px_deviation"], 
+            plane_data["starting_config"]["position_px_deviation"],
+            2
+        )) + np.array(plane_data["starting_config"]["initial_position"])
 
         plane_size = np.array(plane_data["starting_config"]["size"])
         self.__reference_sprite = None

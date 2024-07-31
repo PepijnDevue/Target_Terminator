@@ -1,5 +1,5 @@
 import pygame
-import random
+import numpy as np
 
 
 class Target:
@@ -27,14 +27,11 @@ class Target:
             See config/default_target.yaml for more info.
             - use_gui (bool): Toggle to try and load sprite or not.
         """
-
-        position = [
-            coord + 
-            random.uniform(
-                -target_data["position_px_deviation"], 
-                target_data["position_px_deviation"]
-            ) for coord in target_data["position"]
-        ]
+        position = np.array(np.random.uniform(
+            -target_data["position_px_deviation"], 
+            target_data["position_px_deviation"],
+            2
+        )) + np.array(target_data["position"])
 
         self.rect = pygame.Rect(position, target_data["size"])
         

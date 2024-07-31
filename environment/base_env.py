@@ -2,7 +2,6 @@ import yaml
 import datetime
 import json
 import os
-import random
 import numpy as np
 from cerberus import Validator
 
@@ -41,7 +40,8 @@ class BaseEnv():
         self, 
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
-        target_config: str="config/default_target.yaml"
+        target_config: str="config/default_target.yaml",
+        seed: int=42
     )-> None:
         """
         Initializer for BaseEnv class.
@@ -55,6 +55,8 @@ class BaseEnv():
             configuration. See config/default_target.yaml for more 
             info.
         """
+        np.random.seed(seed)
+
         # for saving the observation history, used in self.close()
         self._current_iteration = 0
         self._observation_history = {self._current_iteration : []}
@@ -301,7 +303,7 @@ class BaseEnv():
             - dict with info, made for compatibility with Gym 
             environment, but is always empty.
         """
-        random.seed(seed)
+        np.random.seed(seed)
         self._create_agent()
         self._create_target()
 
