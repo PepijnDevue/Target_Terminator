@@ -54,6 +54,7 @@ class BaseEnv():
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
+            - seed (int): seed used to spawn in the agent and target. 
         """
         np.random.seed(seed)
 
