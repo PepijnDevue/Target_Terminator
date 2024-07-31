@@ -40,7 +40,8 @@ class BaseEnv():
         self, 
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
-        target_config: str="config/default_target.yaml"
+        target_config: str="config/default_target.yaml",
+        seed: int=42
     )-> None:
         """
         Initializer for BaseEnv class.
@@ -53,7 +54,10 @@ class BaseEnv():
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
+            - seed (int): seed used to spawn in the agent and target. 
         """
+        np.random.seed(seed)
+
         # for saving the observation history, used in self.close()
         self._current_iteration = 0
         self._observation_history = {self._current_iteration : []}
@@ -113,7 +117,7 @@ class BaseEnv():
 
         Use plane and environment data to create Plane object.
         """
-        self._agent = Plane(self._plane_data, self._env_data)
+        self._agent = Plane(self._plane_data)
 
     def _create_target(self)-> None:
         """
@@ -300,6 +304,7 @@ class BaseEnv():
             - dict with info, made for compatibility with Gym 
             environment, but is always empty.
         """
+        np.random.seed(seed)
         self._create_agent()
         self._create_target()
 

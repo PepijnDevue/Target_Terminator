@@ -94,7 +94,7 @@ class HumanRenderingEnv(BaseEnv):
 
         Use plane and environment data to create Plane object.
         """
-        self._agent = Plane(self._plane_data, self._env_data, True)
+        self._agent = Plane(self._plane_data, True)
 
     def _create_target(self)-> None:
         """
