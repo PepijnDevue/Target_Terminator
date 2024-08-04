@@ -133,7 +133,9 @@ class BaseEnv():
 
         Reward is equal to the negative of the absolute distance from
         the agent to the target, divided by the maximum distance the 
-        plane could travel, to normalize it.
+        plane could travel, to normalize it. Additionally, the 
+        difference between the unit vector from the plane to the target
+        and the unit vector for the plane's velocity will be subtracted.
 
         NOTE: function does not check for validity of state parameter
 
@@ -148,8 +150,17 @@ class BaseEnv():
         @returns:
             - float with reward.
         """
-        return -100 * np.linalg.norm(state[:2] - self._target.rect.center) / \
-            self._max_distance
+        direction_to_target = self._target.rect.center - state[:2]
+
+        unit_vector_to_target = direction_to_target / \
+            np.linalg.norm(direction_to_target)
+
+        velocity = state[2:4]
+        unit_vector_agent = velocity / np.linalg.norm(velocity)
+
+        return (
+            -100 * np.linalg.norm(direction_to_target) / self._max_distance
+        ) -50 * np.linalg.norm(unit_vector_agent - unit_vector_to_target) 
 
     def _check_if_terminated(self)-> bool:
         """
@@ -217,7 +228,7 @@ class BaseEnv():
         if is_terminated:
             reward += 200
         if is_truncated:
-            reward -= 100
+            reward -= 1_000
 
         return(state, reward, is_terminated, is_truncated, {})
 
