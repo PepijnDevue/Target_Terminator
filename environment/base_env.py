@@ -158,9 +158,11 @@ class BaseEnv():
         velocity = state[2:4]
         unit_vector_agent = velocity / np.linalg.norm(velocity)
 
-        return (
-            -100 * np.linalg.norm(direction_to_target) / self._max_distance
-        ) -50 * np.linalg.norm(unit_vector_agent - unit_vector_to_target) 
+        return -50 * np.linalg.norm(unit_vector_agent - unit_vector_to_target) 
+
+        # return (
+        #     -100 * np.linalg.norm(direction_to_target) / self._max_distance
+        # ) -50 * np.linalg.norm(unit_vector_agent - unit_vector_to_target) 
 
     def _check_if_terminated(self)-> bool:
         """
