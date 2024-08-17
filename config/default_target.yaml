@@ -6,6 +6,6 @@
 #####################################################
 
 sprite : "assets/target.png"
-size : [80, 80]
+size : [40, 40]
 position : [800, 500] # coordinate of top left most pixel
 position_px_deviation : 100 # amount of pixels the position can deviate

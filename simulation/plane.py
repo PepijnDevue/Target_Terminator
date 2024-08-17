@@ -2,6 +2,9 @@ import pygame
 import math
 import numpy as np
 
+from typing import List
+from simulation.bullet import Bullet
+
 
 class Plane:
     """
@@ -127,6 +130,9 @@ class Plane:
             # if no gui, make custom rectangle instead
             self.rect = pygame.Rect(plane_pos - plane_size // 2, plane_size)
 
+        self.bullet_data = plane_data["bullet_config"]
+        self.bullets: List[Bullet] = []
+
     def tick(self, dt: float)-> None:
         """
         Update internal state of aircraft over given time interval.
@@ -185,6 +191,9 @@ class Plane:
             self.adjust_pitch(norm_drag*0.0001*dt)
         if self._AoA_deg > self._AoA_crit_high[0]:
             self.adjust_pitch(-norm_drag*0.0001*dt)
+
+        for bullet in self.bullets:
+            bullet.update()        
         
     def adjust_pitch(self, dt: float)-> None:
         """
@@ -232,6 +241,29 @@ class Plane:
             )
         else:
             return 0
+        
+    def shoot(self)-> None:  
+        """
+        Shoots a bullet by adding a bullet object to the bullets list.
+        """      
+        offset_x = self.rect.width // 2
+        offset_y = -self.rect.height // 2
+
+        bullet_x = self.rect.centerx + offset_x * \
+            math.cos(math.radians(self._pitch)) - \
+            offset_y * math.sin(math.radians(self._pitch))
+        bullet_y = self.rect.centery + offset_x * \
+            math.sin(math.radians(self._pitch)) + \
+            offset_y * math.cos(math.radians(self._pitch))
+        
+        self.bullets.append(
+            Bullet(
+                self.bullet_data,
+                [bullet_x, bullet_y],
+                self._pitch,
+                bool(self.sprite)
+            )
+        )
 
 # sources:
 # https://github.com/gszabi99/War-Thunder-Datamine/tree/master/aces.vromfs.bin_u/gamedata/flightmodels

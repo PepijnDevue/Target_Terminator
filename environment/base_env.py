@@ -9,6 +9,7 @@ from simulation.plane import Plane
 from simulation.target import Target
 from simulation.ground import Ground
 from utils.collision import check_target_agent_collision
+from utils.collision import check_bullet_collision
 from utils.numpy_encoder import NumpyEncoder
 from utils.create_path_plots import create_path_plots
 import config.validation_templates as templates
@@ -168,13 +169,18 @@ class BaseEnv():
         """
         Check if the current conditions result in a terminal state.
 
-        Terminal state is defined as a state where the agent collides
+        Terminal state is defined as a state where a bullet collides
         with the target.
 
         @returns:
             - boolean; True if terminal, False if not
         """
-        return check_target_agent_collision(self._target, self._agent)
+        return check_bullet_collision(
+            self._agent, 
+            self._target,
+            self._floor.coll_elevation,
+            self._env_data["window_dimensions"][0]
+        )
     
     def _check_if_truncated(self)-> bool:
         """
@@ -192,7 +198,8 @@ class BaseEnv():
             agent_rect.bottom >= self._floor.coll_elevation or
             agent_rect.top < -10 or
             agent_rect.left < -10 or
-            agent_rect.right > window_width + 10
+            agent_rect.right > window_width + 10 or
+            check_target_agent_collision(self._target, self._agent)
         )
 
     def _calculate_observation(
@@ -231,6 +238,8 @@ class BaseEnv():
             reward += 200
         if is_truncated:
             reward -= 1_000
+
+        reward -= len(self._agent.bullets) * 10
 
         return(state, reward, is_terminated, is_truncated, {})
 
@@ -283,7 +292,8 @@ class BaseEnv():
                 self._agent.throttle -= self._dt * 100
         # shoot a bullet
         elif action == 5:
-            raise NotImplementedError("shooting is not yet possible")
+            # raise NotImplementedError("shooting is not yet possible")
+            self._agent.shoot()
         # any other actions are invalid
         else:
             raise ValueError(

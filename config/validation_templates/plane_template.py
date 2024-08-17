@@ -145,5 +145,35 @@ PLANE_TEMPLATE = {
                 ]
             },
         }
+    },
+    'bullet_config' : {
+        'required' : True,
+        'type' : 'dict',
+        'schema' : {
+            'sprite' : {
+                'required' : False,
+                'type' : 'string'
+            },
+            'speed' : {
+                'required' : True,
+                'type' : 'number',
+                'min' : 0
+            },
+            'lifetime' : {
+                'required' : True,
+                'type' : 'number',
+                'min' : 0
+            },
+            'size' : {
+                'required' : True,
+                'type' : 'list',
+                'minlength' : 2, 
+                'maxlength' : 2,
+                'items' : [
+                    {'type' : 'integer', 'min' : 1}, 
+                    {'type': 'integer', 'min' : 1}
+                ]
+            },
+        }
     }
 }
