@@ -1,5 +1,5 @@
 import pygame
-import math
+import numpy as np
 
 from simulation.plane import Plane
 from simulation.target import Target
@@ -36,25 +36,27 @@ def check_bullet_collision(
         - window_width (int): width of the window
 
     @returns:
-        - bool, True if a bullet rect collides with target, False if not.
+        - bool, True if a bullet rect collides with target, 
+        False if not.
     """
     target_hit = False
     remaining_bullets = []
 
     for bullet in agent.bullets:
-        if (math.sqrt(
-                (bullet.rect.x - bullet.starting_pos[0]) ** 2 +
-                (bullet.rect.y - bullet.starting_pos[1]) ** 2
-            ) > bullet.lifetime or
+        if (np.linalg.norm((
+                bullet.rect.centerx - bullet.starting_pos[0], 
+                bullet.rect.centery - bullet.starting_pos[1]
+            )) > bullet.lifetime or
             bullet.rect.bottom >= floorheight or
             bullet.rect.top < -10 or
             bullet.rect.left < -10 or 
             bullet.rect.right > window_width + 10
         ):  
             continue
-        if pygame.Rect.colliderect(bullet.rect, target.rect):
+        elif pygame.Rect.colliderect(bullet.rect, target.rect):
             target_hit = True
-        remaining_bullets.append(bullet)
+        else:
+            remaining_bullets.append(bullet)
 
     agent.bullets = remaining_bullets
 

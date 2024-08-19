@@ -25,18 +25,18 @@ class Bullet:
 
         @params:
             - bullet_data (dict): Bullet configuration. 
-            See config/default_target.yaml for more info.
+            See config/i-16_falangist.yaml for more info.
             - position (tuple[int, int]): Starting position of the bullet.
             - pitch (float): Pitch of the bullet.
             - use_gui (bool): Toggle to try and load sprite or not.
         """
         self.starting_pos = position
         self.rect = pygame.Rect(self.starting_pos, bullet_data["size"])
-        self.pitch = pitch
+        
         self.speed_x = bullet_data["speed"] * \
-            math.cos(math.radians(-self.pitch))
+            math.cos(math.radians(-pitch))
         self.speed_y = bullet_data["speed"] * \
-            math.sin(math.radians(-self.pitch))
+            math.sin(math.radians(-pitch))
         self.lifetime = bullet_data["lifetime"]
 
         self.sprite = None
@@ -47,7 +47,7 @@ class Bullet:
             )
             self.sprite = pygame.transform.rotate(
                 self.sprite,
-                self.pitch
+                pitch
             )
 
     def update(self)-> None:

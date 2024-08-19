@@ -246,20 +246,20 @@ class Plane:
         """
         Shoots a bullet by adding a bullet object to the bullets list.
         """      
-        offset_x = self.rect.width // 2
-        offset_y = -self.rect.height // 2
+        # offset_x = self.rect.width // 2
+        # offset_y = -self.rect.height // 2
 
-        bullet_x = self.rect.centerx + offset_x * \
-            math.cos(math.radians(self._pitch)) - \
-            offset_y * math.sin(math.radians(self._pitch))
-        bullet_y = self.rect.centery + offset_x * \
-            math.sin(math.radians(self._pitch)) + \
-            offset_y * math.cos(math.radians(self._pitch))
+        # bullet_x = self.rect.centerx + offset_x * \
+        #     math.cos(math.radians(self._pitch)) - \
+        #     offset_y * math.sin(math.radians(self._pitch))
+        # bullet_y = self.rect.centery + offset_x * \
+        #     math.sin(math.radians(self._pitch)) + \
+        #     offset_y * math.cos(math.radians(self._pitch))
         
         self.bullets.append(
             Bullet(
                 self.bullet_data,
-                [bullet_x, bullet_y],
+                self.rect.center,
                 self._pitch,
                 bool(self.sprite)
             )

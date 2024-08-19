@@ -25,6 +25,10 @@ starting_config:
     initial_position : [_, _]
     position_px_deviation : _
     size : [_, _] 
+bullet_config:
+    speed : _
+    lifetime : _
+    size : [_, _]
 ```
 """
 

@@ -292,7 +292,6 @@ class BaseEnv():
                 self._agent.throttle -= self._dt * 100
         # shoot a bullet
         elif action == 5:
-            # raise NotImplementedError("shooting is not yet possible")
             self._agent.shoot()
         # any other actions are invalid
         else:

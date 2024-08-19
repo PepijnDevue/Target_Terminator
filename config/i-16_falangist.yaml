@@ -28,5 +28,5 @@ starting_config:
 bullet_config:
     sprite : "assets/bullet.png"
     speed : 10
-    lifetime : 400
-    size : [50, 50]
+    lifetime : 500 # amount of pixels the plane may travel
+    size : [10, 10]
