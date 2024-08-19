@@ -239,8 +239,6 @@ class BaseEnv():
         if is_truncated:
             reward -= 1_000
 
-        reward -= len(self._agent.bullets) * 10
-
         return(state, reward, is_terminated, is_truncated, {})
 
     def _render(self)-> None:
@@ -306,8 +304,8 @@ class BaseEnv():
         # calculate, save, and return observation in current conditions
         observation = self._calculate_observation()
         self._observation_history[self._current_iteration].append(observation)
-
-        return observation
+        
+        return observation[:1] + (observation[1] - 50 if action == 5 else observation[1],) + observation[2:]
 
     def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
         """
