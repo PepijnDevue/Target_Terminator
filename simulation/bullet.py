@@ -33,11 +33,11 @@ class Bullet:
         self.starting_pos = position
         self.rect = pygame.Rect(self.starting_pos, bullet_data["size"])
         
-        self.speed_x = bullet_data["speed"] * \
+        self._speed_x = bullet_data["speed"] * \
             math.cos(math.radians(-pitch))
-        self.speed_y = bullet_data["speed"] * \
+        self._speed_y = bullet_data["speed"] * \
             math.sin(math.radians(-pitch))
-        self.lifetime = bullet_data["lifetime"]
+        self._lifetime = bullet_data["lifetime"]
 
         self.sprite = None
         if use_gui:
@@ -54,5 +54,5 @@ class Bullet:
         """
         Update the position of the bullet.
         """
-        self.rect.x += self.speed_x
-        self.rect.y += self.speed_y
+        self.rect.x += self._speed_x
+        self.rect.y += self._speed_y

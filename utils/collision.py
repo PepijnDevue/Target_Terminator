@@ -46,7 +46,7 @@ def check_bullet_collision(
         if (np.linalg.norm((
                 bullet.rect.centerx - bullet.starting_pos[0], 
                 bullet.rect.centery - bullet.starting_pos[1]
-            )) > bullet.lifetime or
+            )) > bullet._lifetime or
             bullet.rect.bottom >= floorheight or
             bullet.rect.top < -10 or
             bullet.rect.left < -10 or 
