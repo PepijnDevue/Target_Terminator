@@ -8,11 +8,10 @@ from cerberus import Validator
 from simulation.plane import Plane
 from simulation.target import Target
 from simulation.ground import Ground
-from utils.collision import check_target_agent_collision
-from utils.collision import check_bullet_collision
 from utils.numpy_encoder import NumpyEncoder
 from utils.create_path_plots import create_path_plots
 import config.validation_templates as templates
+import utils.collision as col
 
 
 class BaseEnv():
@@ -89,11 +88,6 @@ class BaseEnv():
             templates.TARGET_TEMPLATE
         ),f"A validation error occurred in the target data: {validator.errors}"
 
-        # calculate max distance, to normalize reward
-        self._max_distance = np.linalg.norm(
-            self._env_data["window_dimensions"]
-        )
-
         # reserve memory for necessary member objects
         self._floor = None
         self._agent = None
@@ -132,11 +126,9 @@ class BaseEnv():
         """
         Reward function for environment.
 
-        Reward is equal to the negative of the absolute distance from
-        the agent to the target, divided by the maximum distance the 
-        plane could travel, to normalize it. Additionally, the 
-        difference between the unit vector from the plane to the target
-        and the unit vector for the plane's velocity will be subtracted.
+        Reward is equal to the difference between the unit vector from 
+        the plane to the target and the unit vector for the plane's 
+        velocity will be subtracted.
 
         NOTE: function does not check for validity of state parameter
 
@@ -171,7 +163,7 @@ class BaseEnv():
         @returns:
             - boolean; True if terminal, False if not
         """
-        return check_bullet_collision(
+        return col.check_bullet_collision(
             self._agent, 
             self._target,
             self._floor.coll_elevation,
@@ -195,7 +187,7 @@ class BaseEnv():
             agent_rect.top < -10 or
             agent_rect.left < -10 or
             agent_rect.right > window_width + 10 or
-            check_target_agent_collision(self._target, self._agent)
+            col.check_target_agent_collision(self._target, self._agent)
         )
 
     def _calculate_observation(

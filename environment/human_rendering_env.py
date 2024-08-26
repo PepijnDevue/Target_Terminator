@@ -125,9 +125,7 @@ class HumanRenderingEnv(BaseEnv):
         environment.
         """
         self.screen.blit(self._background, (0, 0))
-
         self.screen.blit(self._floor.sprite, [0, self._floor.coll_elevation])
-        
         self.screen.blit(self._target.sprite, self._target.rect)
 
         for bullet in self._agent.bullets:

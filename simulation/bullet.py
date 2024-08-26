@@ -11,7 +11,11 @@ class Bullet:
 
     @public member variables:
         + rect (pygame.Rect): Rectangle that can be used for collisions.
-        + sprite: (pygame.Surface) Sprite for bullet
+        + sprite: (pygame.Surface) Sprite for bullet.
+
+    @public methods:
+    + def update()-> None:
+        Update the position of the bullet.
     """
     def __init__(
             self,
@@ -21,12 +25,13 @@ class Bullet:
             use_gui: bool=False
     )-> None:
         """
-        Initaliser of the Bullet class
+        Initializer of the Bullet class.
 
         @params:
             - bullet_data (dict): Bullet configuration. 
             See config/i-16_falangist.yaml for more info.
-            - position (tuple[int, int]): Starting position of the bullet.
+            - position (tuple[int, int]): Starting position of the 
+            bullet.
             - pitch (float): Pitch of the bullet.
             - use_gui (bool): Toggle to try and load sprite or not.
         """

@@ -2,7 +2,6 @@ import pygame
 import math
 import numpy as np
 
-from typing import List
 from simulation.bullet import Bullet
 
 
@@ -49,6 +48,9 @@ class Plane:
         - _f_engine: (tuple[float, float]) engine force vector
         - _f_drag: (tuple[float, float]) drag force vector
         - _f_lift: (tuple[float, float]) drag force vector
+        - _bullet_data: bullet configuration. 
+        - _bullets: list[Bullet] container for all bullets shot by the 
+        plane.
 
     @public methods:
     + def tick(dt: float)-> None:
@@ -130,8 +132,8 @@ class Plane:
             # if no gui, make custom rectangle instead
             self.rect = pygame.Rect(plane_pos - plane_size // 2, plane_size)
 
-        self.bullet_data = plane_data["bullet_config"]
-        self.bullets: List[Bullet] = []
+        self._bullet_data = plane_data["bullet_config"]
+        self._bullets: list[Bullet] = []
 
     def tick(self, dt: float)-> None:
         """
@@ -192,7 +194,8 @@ class Plane:
         if self._AoA_deg > self._AoA_crit_high[0]:
             self.adjust_pitch(-norm_drag*0.0001*dt)
 
-        for bullet in self.bullets:
+        # update the bullets the plane shot
+        for bullet in self._bullets:
             bullet.update()        
         
     def adjust_pitch(self, dt: float)-> None:
@@ -246,9 +249,9 @@ class Plane:
         """
         Shoots a bullet by adding a bullet object to the bullets list.
         """
-        self.bullets.append(
+        self._bullets.append(
             Bullet(
-                self.bullet_data,
+                self._bullet_data,
                 self.rect.center,
                 self._pitch,
                 bool(self.sprite)
