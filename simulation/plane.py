@@ -17,6 +17,8 @@ class Plane:
         + rect: (pygame.Rect) rectangle object for pygame
         + throttle: (float) throttle
         + v: (tuple[float, float]) velocity vector
+        + bullets: (list[Bullet]) container for all bullets shot by the 
+        plane.
     
     @private member variables:
     NOTE: normally not explained, as they are private, but here they are
@@ -49,8 +51,6 @@ class Plane:
         - _f_drag: (tuple[float, float]) drag force vector
         - _f_lift: (tuple[float, float]) drag force vector
         - _bullet_data: bullet configuration. 
-        - _bullets: list[Bullet] container for all bullets shot by the 
-        plane.
 
     @public methods:
     + def tick(dt: float)-> None:
@@ -133,7 +133,7 @@ class Plane:
             self.rect = pygame.Rect(plane_pos - plane_size // 2, plane_size)
 
         self._bullet_data = plane_data["bullet_config"]
-        self._bullets: list[Bullet] = []
+        self.bullets: list[Bullet] = []
 
     def tick(self, dt: float)-> None:
         """
@@ -195,7 +195,7 @@ class Plane:
             self.adjust_pitch(-norm_drag*0.0001*dt)
 
         # update the bullets the plane shot
-        for bullet in self._bullets:
+        for bullet in self.bullets:
             bullet.update()        
         
     def adjust_pitch(self, dt: float)-> None:
@@ -249,7 +249,7 @@ class Plane:
         """
         Shoots a bullet by adding a bullet object to the bullets list.
         """
-        self._bullets.append(
+        self.bullets.append(
             Bullet(
                 self._bullet_data,
                 self.rect.center,
