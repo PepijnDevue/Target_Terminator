@@ -25,3 +25,8 @@ starting_config:
     initial_position : [100, 300] # coordinate of top left most pixel
     position_px_deviation : 100 # amount of pixels the position can deviate
     size : [24, 12]  # 6.13 : 3.25 irl
+bullet_config:
+    sprite : "assets/bullet.png"
+    speed : 10
+    lifetime : 500 # amount of pixels the plane may travel
+    size : [10, 10]

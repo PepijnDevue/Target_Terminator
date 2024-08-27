@@ -1,98 +1,63 @@
 import pygame
 import math
 
-import settings
-
 
 class Bullet:
     """
     Bullet class
 
-    + sprite: (pygame.surface) optional sprite with contents of bullet
-    + size: (int) bullet 2r
-    + current_time: (float) accumulator for dt 
-    + pitch: (float) pitch of bullet
-    + speed: (float) bullet speed (m/s)
-    + ground_height: (int) ground_height (pixels)
-    + coords: (Tuple[int, int]) location (x, y) (pixels)
-    + rect: (Tuple[int, int]) balloon rect
+    This class instantiates a bullet that conforms to physics given the
+    environment.
+
+    @public member variables:
+        + rect (pygame.Rect): Rectangle that can be used for collisions.
+        + sprite: (pygame.Surface) Sprite for bullet.
+
+    @public methods:
+    + def update()-> None:
+        Update the position of the bullet.
     """
     def __init__(
             self,
-            coords: tuple[int, int],
+            bullet_data: dict,
+            position: tuple[int, int],
             pitch: float,
-            ground_height: int,
-            sprite: str=None,
-    ) -> None:
+            use_gui: bool=False
+    )-> None:
         """
-        Initaliser of the bullet class
+        Initializer of the Bullet class.
 
-        :param coords: initial position of the bullet (tuple[int, int])
-        :param pitch: angle of the bullet (float)
-        :param ground_height: height of the ground (int)
-        :param sprite: path of the image used for the sprite of the 
-         bullet
-        :return: None
+        @params:
+            - bullet_data (dict): Bullet configuration. 
+            See config/i-16_falangist.yaml for more info.
+            - position (tuple[int, int]): Starting position of the 
+            bullet.
+            - pitch (float): Pitch of the bullet.
+            - use_gui (bool): Toggle to try and load sprite or not.
         """
-        self.size = settings.BULLET["SIZE"]
-        self.current_time = 0
-        self.pitch = pitch
-        self.speed = settings.BULLET["SPEED"]
-        self.ground_height = ground_height
+        self.starting_pos = position
+        self.rect = pygame.Rect(self.starting_pos, bullet_data["size"])
+        
+        self._speed_x = bullet_data["speed"] * \
+            math.cos(math.radians(-pitch))
+        self._speed_y = bullet_data["speed"] * \
+            math.sin(math.radians(-pitch))
+        self._lifetime = bullet_data["lifetime"]
 
-        self.coords = (
-            coords[0],
-            coords[1]
-        )
-        self.rect = pygame.Rect(
-            self.coords[0],
-            self.coords[1],
-            self.size,
-            self.size
-        )
-
-        if sprite:
-            self.sprite = pygame.image.load(sprite)
+        self.sprite = None
+        if use_gui:
             self.sprite = pygame.transform.scale(
+                pygame.image.load(bullet_data["sprite"]),
+                bullet_data["size"]
+            )
+            self.sprite = pygame.transform.rotate(
                 self.sprite,
-                (self.size, self.size)
+                pitch
             )
 
-    def move_bullet(self, dt: float) -> bool:
+    def update(self)-> None:
         """
-        This function calculates the new position of the bullet based on 
-        the pitch of the plane. If the bullet has been alive for too
-        long, it destroys itself. If the bullet hits the ground, it
-        is also destroyed. The function returns True if the bullet
-        needs to be destroyed.
-
-        :param dt: time step (float)
-        :return: bool
+        Update the position of the bullet.
         """
-        self.current_time += dt
-
-        # Calculate the new position of the bullet
-        dx = self.speed * math.cos(math.radians(-self.pitch))
-        dy = self.speed * math.sin(math.radians(-self.pitch))
-
-        self.coords = (self.coords[0] + dx, self.coords[1] + dy)
-        self.rect = pygame.Rect(
-            self.coords[0],
-            self.coords[1],
-            self.size,
-            self.size
-        )
-
-        # Check if the bullet needs to wrap around the screen
-        if self.coords[0] < 0:
-            self.coords = (settings.SCREEN_WIDTH, self.coords[1])
-        elif self.coords[0] > settings.SCREEN_WIDTH:
-            self.coords = (0, self.coords[1])
-
-        # Check if the bullet needs to be destroyed
-        if self.current_time >= settings.BULLET["LIFETIME"]:
-            return True
-
-        if self.coords[1] >= self.ground_height:
-            return True
-        return False
+        self.rect.x += self._speed_x
+        self.rect.y += self._speed_y

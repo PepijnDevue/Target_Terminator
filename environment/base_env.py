@@ -8,10 +8,10 @@ from cerberus import Validator
 from simulation.plane import Plane
 from simulation.target import Target
 from simulation.ground import Ground
-from utils.collision import check_target_agent_collision
 from utils.numpy_encoder import NumpyEncoder
 from utils.create_path_plots import create_path_plots
 import config.validation_templates as templates
+import utils.collision as col
 
 
 class BaseEnv():
@@ -88,11 +88,6 @@ class BaseEnv():
             templates.TARGET_TEMPLATE
         ),f"A validation error occurred in the target data: {validator.errors}"
 
-        # calculate max distance, to normalize reward
-        self._max_distance = np.linalg.norm(
-            self._env_data["window_dimensions"]
-        )
-
         # reserve memory for necessary member objects
         self._floor = None
         self._agent = None
@@ -131,11 +126,9 @@ class BaseEnv():
         """
         Reward function for environment.
 
-        Reward is equal to the negative of the absolute distance from
-        the agent to the target, divided by the maximum distance the 
-        plane could travel, to normalize it. Additionally, the 
-        difference between the unit vector from the plane to the target
-        and the unit vector for the plane's velocity will be subtracted.
+        Reward is equal to the difference between the unit vector from 
+        the plane to the target and the unit vector for the plane's 
+        velocity will be subtracted.
 
         NOTE: function does not check for validity of state parameter
 
@@ -158,21 +151,24 @@ class BaseEnv():
         velocity = state[2:4]
         unit_vector_agent = velocity / np.linalg.norm(velocity)
 
-        return (
-            -100 * np.linalg.norm(direction_to_target) / self._max_distance
-        ) -50 * np.linalg.norm(unit_vector_agent - unit_vector_to_target) 
-
+        return -50 * np.linalg.norm(unit_vector_agent - unit_vector_to_target) 
+    
     def _check_if_terminated(self)-> bool:
         """
         Check if the current conditions result in a terminal state.
 
-        Terminal state is defined as a state where the agent collides
+        Terminal state is defined as a state where a bullet collides
         with the target.
 
         @returns:
             - boolean; True if terminal, False if not
         """
-        return check_target_agent_collision(self._target, self._agent)
+        return col.check_bullet_collision(
+            self._agent, 
+            self._target,
+            self._floor.coll_elevation,
+            self._env_data["window_dimensions"][0]
+        )
     
     def _check_if_truncated(self)-> bool:
         """
@@ -190,7 +186,8 @@ class BaseEnv():
             agent_rect.bottom >= self._floor.coll_elevation or
             agent_rect.top < -10 or
             agent_rect.left < -10 or
-            agent_rect.right > window_width + 10
+            agent_rect.right > window_width + 10 or
+            col.check_target_agent_collision(self._target, self._agent)
         )
 
     def _calculate_observation(
@@ -281,7 +278,7 @@ class BaseEnv():
                 self._agent.throttle -= self._dt * 100
         # shoot a bullet
         elif action == 5:
-            raise NotImplementedError("shooting is not yet possible")
+            self._agent.shoot()
         # any other actions are invalid
         else:
             raise ValueError(
@@ -295,8 +292,10 @@ class BaseEnv():
         # calculate, save, and return observation in current conditions
         observation = self._calculate_observation()
         self._observation_history[self._current_iteration].append(observation)
-
-        return observation
+        
+        return observation[:1] + \
+            (observation[1] - 50 if action == 5 else observation[1],) + \
+            observation[2:]
 
     def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
         """

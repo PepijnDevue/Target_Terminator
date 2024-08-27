@@ -25,6 +25,10 @@ starting_config:
     initial_position : [_, _]
     position_px_deviation : _
     size : [_, _] 
+bullet_config:
+    speed : _
+    lifetime : _
+    size : [_, _]
 ```
 """
 
@@ -142,6 +146,36 @@ PLANE_TEMPLATE = {
                 'items' : [
                     {'type' : 'integer', 'min' : 0}, 
                     {'type': 'integer', 'min' : 0}
+                ]
+            },
+        }
+    },
+    'bullet_config' : {
+        'required' : True,
+        'type' : 'dict',
+        'schema' : {
+            'sprite' : {
+                'required' : False,
+                'type' : 'string'
+            },
+            'speed' : {
+                'required' : True,
+                'type' : 'number',
+                'min' : 0
+            },
+            'lifetime' : {
+                'required' : True,
+                'type' : 'number',
+                'min' : 0
+            },
+            'size' : {
+                'required' : True,
+                'type' : 'list',
+                'minlength' : 2, 
+                'maxlength' : 2,
+                'items' : [
+                    {'type' : 'integer', 'min' : 1}, 
+                    {'type': 'integer', 'min' : 1}
                 ]
             },
         }
