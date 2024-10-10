@@ -1,8 +1,8 @@
 import pygame
 import numpy as np
 
-from simulation.plane import Plane
-from simulation.target import Target
+from simulation.deprecated.plane import Plane
+from simulation.deprecated.target import Target
 
 
 def check_target_agent_collision(target: Target, agent: Plane) -> bool:

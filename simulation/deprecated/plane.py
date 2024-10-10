@@ -2,7 +2,7 @@ import pygame
 import math
 import numpy as np
 
-from simulation.bullet import Bullet
+from simulation.deprecated.bullet import Bullet
 
 
 class Plane:

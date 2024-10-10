@@ -3,9 +3,9 @@ import os
 import numpy as np
 
 from environment.base_env import BaseEnv
-from simulation.plane import Plane
-from simulation.target import Target
-from simulation.ground import Ground
+from simulation.deprecated.plane import Plane
+from simulation.deprecated.target import Target
+from simulation.deprecated.ground import Ground
 
 
 class HumanRenderingEnv(BaseEnv):

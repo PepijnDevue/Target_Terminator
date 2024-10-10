@@ -5,9 +5,9 @@ import os
 import numpy as np
 from cerberus import Validator
 
-from simulation.plane import Plane
-from simulation.target import Target
-from simulation.ground import Ground
+from simulation.deprecated.plane import Plane
+from simulation.deprecated.target import Target
+from simulation.deprecated.ground import Ground
 from utils.numpy_encoder import NumpyEncoder
 from utils.create_path_plots import create_path_plots
 import config.validation_templates as templates
