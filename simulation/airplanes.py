@@ -6,6 +6,7 @@ class Airplanes:
     def __init__(self, scalars, vectors):
         self.scalars = scalars
         self.vectors = vectors
+        self.vectors[:,5,1] = self.scalars[:,0] * 9.81
 
     def tick(self, dt, actions):
         # update pitch unit vector
