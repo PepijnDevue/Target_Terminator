@@ -1,5 +1,5 @@
-from entities import Entities
-import game_loop
+from simulation.entities import Entities
+import debug_game_loop
 import numpy as np
 
 scalars = np.array(
@@ -23,4 +23,4 @@ actions = np.array([])
 entities = Entities(scalars, vectors, 1000)
 # entities.tick(0, actions)
 
-game_loop.run(entities)
+debug_game_loop.run(entities)

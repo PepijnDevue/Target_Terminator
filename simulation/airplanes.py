@@ -8,7 +8,7 @@ class Airplanes:
         self.vectors = vectors
 
     def tick(self, dt, actions):
-        #update pitch unit vector
+        # update pitch unit vector
         self.vectors[:, 3, 0] = np.cos(-math.pi / 180 * self.scalars[:, 8])
         self.vectors[:, 3, 1] = np.sin(-math.pi / 180 * self.scalars[:, 8])
 
@@ -34,7 +34,6 @@ class Airplanes:
         coef_drag = (self.scalars[:,9] / np.sqrt(40))**2 + self.scalars[:,4]
         norm_drag = self.scalars[:,1] * coef_drag * np.linalg.norm(self.vectors[:,2], axis=1)**2
         self.vectors[:,7] = -norm_drag[:, None] * self.vectors[:,4]
-        print(norm_drag)
 
         # fres
         f_res = self.vectors[:,5] + self.vectors[:,6] + self.vectors[:,7] + self.vectors[:,8]

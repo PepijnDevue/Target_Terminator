@@ -15,12 +15,12 @@ def run(entities):
     target_sprites = []
     bullet_sprites = []
 
-    for airplane in entities.scalars[entities.scalars[:,10]==0]:
-        sprite = pygame.transform.scale(
-            pygame.image.load("assets/i16_falangist.png"),
-            [48,24],
-        )
-        airplane_sprites.append(sprite)
+    # for airplane in entities.scalars[entities.scalars[:,10]==0]:
+    #     sprite = pygame.transform.scale(
+    #         pygame.image.load("assets/i16_falangist.png"),
+    #         [48,24],
+    #     )
+    #     airplane_sprites.append(sprite)
 
     while running:
         for event in pygame.event.get():

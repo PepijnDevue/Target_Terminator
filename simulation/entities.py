@@ -1,7 +1,7 @@
 import numpy as np
 
-from airplanes import Airplanes
-from targets import Targets
+from simulation.airplanes import Airplanes
+from simulation.targets import Targets
 
 class Entities:
     def __init__(self, scalars, vectors, n_entities):
@@ -26,3 +26,5 @@ class Entities:
         self.airplanes.tick(dt, actions)  # voor als je non-airplane agents wilt toevoegen: actions -> actions[:n_planes]
         # TODO: collision
         # TODO: bullets
+
+
