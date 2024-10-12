@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from simulation.airplanes import Airplanes
 from simulation.targets import Targets
@@ -31,16 +32,16 @@ class Entities:
         # TODO: bullets
 
     def collision(self):
-        M = np.tile(self.vectors[:self.n_total, 3], (self.n_total, 1, 1))
-        d_curr = np.linalg.norm((M - np.transpose(M, (1, 0, 2))), axis=2)
+        vectors = self.vectors[:self.n_total, 3]
+        d_curr = np.linalg.norm(vectors[:, np.newaxis] - vectors, axis=2)
 
-        N = np.tile(self.scalars[:self.n_total, 9], (self.n_total, 1))
-        d_min = (N+N.T)
+        scalars = self.scalars[:self.n_total, 9]
+        d_min = scalars[:, np.newaxis] + scalars
         np.fill_diagonal(d_min, -99999999)
-        d = d_curr-d_min
-        i = np.argsort(d)
 
-        mask = np.sort(d)[:,0] < 0
-        coll_indices = mask * i[:,0] + mask - 1
-        mask2 = self.scalars[:self.n_total,12] == -1
-        self.scalars[:self.n_total, 12] += mask2 * (coll_indices+1)
+        d = d_curr - d_min
+        i = np.argsort(d, axis=1)
+        mask = np.min(d, axis=1) < 0
+        coll_indices = np.where(mask, i[:, 0], -1)
+
+        self.scalars[:self.n_total, 12] += (self.scalars[:self.n_total, 12] == -1) * (coll_indices + 1)
