@@ -9,48 +9,48 @@ class Airplanes:
 
     def tick(self, dt, actions):
         # update pitch unit vector
-        self.vectors[:, 3, 0] = np.cos(-math.pi / 180 * self.scalars[:, 8])
-        self.vectors[:, 3, 1] = np.sin(-math.pi / 180 * self.scalars[:, 8])
+        self.vectors[:, 9, 0] = np.cos(-math.pi / 180 * self.scalars[:, 8])
+        self.vectors[:, 9, 1] = np.sin(-math.pi / 180 * self.scalars[:, 8])
 
         # update velocity unit vector
-        self.vectors[:,4] = normalize(self.vectors[:,2])
+        self.vectors[:, 4] = normalize(self.vectors[:, 2])
 
         # update AoA
-        self.scalars[:,9] = ((
-            np.arctan2(self.vectors[:, 3, 0], self.vectors[:, 3, 1]) -
+        self.scalars[:, 10] = ((
+            np.arctan2(self.vectors[:, 9, 0], self.vectors[:, 9, 1]) -
             np.arctan2(self.vectors[:, 2, 0], self.vectors[:, 2, 1])
         ) * 180 / math.pi + 180) % 360 - 180
 
         # engine force vector
-        self.vectors[:,6] = self.scalars[:,7][:, None] * 0.1 * self.scalars[:,5][:, None] * self.vectors[:,3]
+        self.vectors[:, 6] = self.scalars[:, 7][:, None] * 0.1 * self.scalars[:, 5][:, None] * self.vectors[:, 9]
 
         # lift force vector
         coef_lift = self._lift_curve()
-        norm_lift = self.scalars[:,2] * coef_lift * np.linalg.norm(self.vectors[:,2], axis=1) ** 2
-        self.vectors[:,8,0] = norm_lift * self.vectors[:,4,1]
-        self.vectors[:,8,1] = norm_lift * -self.vectors[:,4,0]
+        norm_lift = self.scalars[:, 2] * coef_lift * np.linalg.norm(self.vectors[:, 2], axis=1) ** 2
+        self.vectors[:, 8, 0] = norm_lift * self.vectors[:, 4, 1]
+        self.vectors[:, 8, 1] = norm_lift * -self.vectors[:, 4, 0]
 
         # drag force vector
-        coef_drag = (self.scalars[:,9] / np.sqrt(40))**2 + self.scalars[:,4]
-        norm_drag = self.scalars[:,1] * coef_drag * np.linalg.norm(self.vectors[:,2], axis=1)**2
-        self.vectors[:,7] = -norm_drag[:, None] * self.vectors[:,4]
+        coef_drag = (self.scalars[:, 10] / np.sqrt(40))**2 + self.scalars[:, 4]
+        norm_drag = self.scalars[:, 1] * coef_drag * np.linalg.norm(self.vectors[:, 2], axis=1)**2
+        self.vectors[:, 7] = -norm_drag[:, None] * self.vectors[:, 4]
 
         # fres
-        f_res = self.vectors[:,5] + self.vectors[:,6] + self.vectors[:,7] + self.vectors[:,8]
-        self.vectors[:,2] += dt * f_res / self.scalars[:,0][:, None]
-        self.vectors[:,9] += dt * self.vectors[:,2]
+        f_res = self.vectors[:, 5] + self.vectors[:, 6] + self.vectors[:, 7] + self.vectors[:, 8]
+        self.vectors[:, 2] += dt * f_res / self.scalars[:, 0][:, None]
+        self.vectors[:, 3] += dt * self.vectors[:, 2]
 
         # induced torque
         filter = np.zeros(self.scalars.shape[0])
-        filter[self.scalars[:, 9] < self.vectors[:, 0, 0]] = 1
-        filter[self.scalars[:, 9] > self.vectors[:, 1, 0]] = -1
+        filter[self.scalars[:, 10] < self.vectors[:, 0, 0]] = 1
+        filter[self.scalars[:, 10] > self.vectors[:, 1, 0]] = -1
         self.scalars[:, 8] = (self.scalars[:, 8] + dt * filter * norm_drag * 0.01) % 360
 
         self.execute_actions(dt, actions)
 
     def execute_actions(self, dt, actions):
         l = self.scalars.shape[0]
-        self.scalars[0,13] = actions[0, 1]
+        self.scalars[0, 13] = actions[0, 1]
 
         # action 1 pitch up
         filter = np.zeros(l)
@@ -79,12 +79,12 @@ class Airplanes:
         # TODO: action 6 flip
 
     def _lift_curve(self) -> np.ndarray:
-        AoA = self.scalars[:, 9]
-        AoA_crit_low = self.vectors[:, 0, 0]  # kritieke hoek bij lage AoA
-        coef_low = self.vectors[:, 0, 1]      # liftcoëfficiënt bij lage AoA
-        AoA_crit_high = self.vectors[:, 1, 0] # kritieke hoek bij hoge AoA
-        coef_high = self.vectors[:, 1, 1]     # liftcoëfficiënt bij hoge AoA
-        cl0 = self.scalars[:, 3]              # nul-lift coefficient (cl0)
+        AoA = self.scalars[:, 10]
+        AoA_crit_low = self.vectors[:, 0, 0]
+        coef_low = self.vectors[:, 0, 1]
+        AoA_crit_high = self.vectors[:, 1, 0]
+        coef_high = self.vectors[:, 1, 1]
+        cl0 = self.scalars[:, 3]
 
         lift_coef = np.zeros_like(AoA)
 

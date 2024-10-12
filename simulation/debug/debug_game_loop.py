@@ -62,7 +62,7 @@ def run(entities):
         pygame.draw.line(screen, 'green', center, center + entities.vectors[0,8]/(c**2))
         pygame.draw.line(screen, 'yellow', center, center + entities.vectors[0,5]/(c**2))
         #
-        screen.blit(font.render('AoA:             ' + str(entities.scalars[:2,9]), False, 'black'), (20, 20))
+        screen.blit(font.render('AoA:             ' + str(entities.scalars[:2,10]), False, 'black'), (20, 20))
         screen.blit(font.render('pitch:           ' + str(entities.scalars[:2,8]), False, 'black'), (20, 40))
         screen.blit(font.render('action:          ' + str(entities.scalars[:2,13]), False, 'black'), (20, 60))
         screen.blit(font.render('throttle:        ' + str(entities.scalars[:2,7]), False, 'black'), (20, 80))

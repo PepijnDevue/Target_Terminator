@@ -10,8 +10,8 @@ class Entities:
 
         self.scalars[:scalars.shape[0]] = scalars
         self.vectors[:vectors.shape[0]] = vectors
-        n_planes = np.sum(scalars[:,10]==0)
-        n_targets = np.sum(scalars[:,10]==1)
+        n_planes = np.sum(scalars[:,11]==0)
+        n_targets = np.sum(scalars[:,11]==1)
 
         self.airplanes = Airplanes(
             self.scalars[:n_planes],
