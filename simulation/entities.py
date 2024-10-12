@@ -37,7 +37,7 @@ class Entities:
 
         scalars = self.scalars[:self.n_total, 9]
         d_min = scalars[:, np.newaxis] + scalars
-        np.fill_diagonal(d_min, -99999999)
+        np.fill_diagonal(d_min, -1)
 
         d = d_curr - d_min
         i = np.argsort(d, axis=1)
