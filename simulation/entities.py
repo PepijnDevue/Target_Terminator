@@ -36,12 +36,13 @@ class Entities:
 
     def tick(self, dt, actions):
         self.airplanes.tick(dt, actions)
+        self.bullets.tick(dt)
         # voor als je non-airplane agents wilt toevoegen: actions -> actions[:n_planes] oid
         #  vooralsnog ga ik er van uit dat alle agents vliegtuigen zijn
 
         self.collision()
 
-        shoot_id = actions[actions[:, 1] == 3]
+        shoot_id = actions[actions[:, 1] == 5]
         if shoot_id.shape[0]!=0:
             self.spawn_bullet(dt, shoot_id[:,0])
 
@@ -49,12 +50,12 @@ class Entities:
 
     def spawn_bullet(self, dt, id):
         # TODO: firerate?
-        # TODO: dit is ook niet getest  maar ik weet like 80% zeker dat het werkt
         pos = self.vectors[id,3] + self.vectors[id,4] * (self.scalars[id,9][:,None] + 2)
-        v = self.vectors[id,2] + 100
-        vectors = np.zeros((id.shape[0], self.vectors.shape[1]))
+        v = self.vectors[id,2] + (100 * self.vectors[id,4])
+        vectors = np.zeros((id.shape[0], self.vectors.shape[1], 2))
         vectors[:,3] = pos
         vectors[:,2] = v
+        self.n_bullets += id.shape[0]
         self.bullets.spawn(vectors)
 
     def collision(self):

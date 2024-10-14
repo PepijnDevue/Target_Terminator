@@ -17,7 +17,6 @@ class Bullets:
         #  het geval is gebruiken we dus (de weg-gecommentete) line 9 ipv 8
 
     def spawn(self, vectors):
-        # TODO: dit is nog niet getest ik heb geen idee of dit werkt
         scalars = np.zeros((vectors.shape[0], self.scalars.shape[1]))
         scalars[:,11] = 2
         scalars[:,12] = -1

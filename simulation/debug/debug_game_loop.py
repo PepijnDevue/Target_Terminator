@@ -55,6 +55,10 @@ def run(entities):
         # player.pos[1] = player.pos[1] % screen.get_height()
         # screen.blit(player.rot_sprite, player.rot_rect)
 
+        for bullet in entities.vectors[entities.scalars[:,11]==2,3]:
+            pygame.draw.circle(screen, 'black', bullet, 1)
+
+        pygame.draw.circle(screen, 'black', entities.vectors[0,3], 6)
         c = 10
         pygame.draw.line(screen, 'black', center, center + entities.vectors[0,2])
         pygame.draw.line(screen, 'red', center, center + entities.vectors[0,6]/c)
