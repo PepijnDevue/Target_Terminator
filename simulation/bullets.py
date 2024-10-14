@@ -1,4 +1,6 @@
 import numpy as np
+import time
+
 
 class Bullets:
     def __init__(self, scalars, vectors):
@@ -20,10 +22,10 @@ class Bullets:
         scalars = np.zeros((vectors.shape[0], self.scalars.shape[1]))
         scalars[:,11] = 2
         scalars[:,12] = -1
-        i = np.argsort(self.scalars[:,11])[:scalars.shape[0]]
+        scalars[:,2] = time.time()
+        i = np.argsort(self.scalars[:,11])[:scalars.shape[0]] # hier iets van np.min ofzo gebruiken is wellicht efficienter?
         self.scalars[i] = scalars
         self.vectors[i] = vectors
 
     def despawn(self):
-        pass
-
+        self.scalars[np.where((time.time() - self.scalars[:,2]) > 3), 11] = -1 # `3` = despawn tijd in s

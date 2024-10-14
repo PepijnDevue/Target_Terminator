@@ -46,12 +46,17 @@ class Entities:
         if shoot_id.shape[0]!=0:
             self.spawn_bullet(dt, shoot_id[:,0])
 
-        # TODO: despawn bullets
+        self.bullets.despawn()
+
+        # TODO: map boundaries, grond
+        # TODO: `tick` uitvoeren op *alleen* die rijen die 'levend' zijn, kan
+        #  wellicht sneller zijn, het kan echter ook dat het slicen/masken meer
+        #  tijd kost dan de overbodige berekeningen
 
     def spawn_bullet(self, dt, id):
         # TODO: firerate?
-        pos = self.vectors[id,3] + self.vectors[id,4] * (self.scalars[id,9][:,None] + 2)
-        v = self.vectors[id,2] + (100 * self.vectors[id,4])
+        pos = self.vectors[id,3] + self.vectors[id,4] * (self.scalars[id,9][:,None] + 2)  # `2` = afstand tussen center van bullet en rand hitbox van vliegtuig in m
+        v = self.vectors[id,2] + (100 * self.vectors[id,4])  # `100` = v van bullet relatief aan vliegtuig in m/s
         vectors = np.zeros((id.shape[0], self.vectors.shape[1], 2))
         vectors[:,3] = pos
         vectors[:,2] = v
@@ -59,6 +64,10 @@ class Entities:
         self.bullets.spawn(vectors)
 
     def collision(self):
+        # `collision` gaat er van uit dat alle hitboxen 'rond' zijn, dit is
+        #  natuurlijk niet realistisch maar maakt het wel aanzienlijk veel
+        #  sneller te berekenen, en op hoge snelheden maakt een exacte hitbox
+        #  toch niet super veel uit
         vectors = self.vectors[:self.n_total, 3]
         d_curr = np.linalg.norm(vectors[:, np.newaxis] - vectors, axis=2)
 
@@ -74,6 +83,8 @@ class Entities:
         #  getriggerd heeft neergezet, maar bullets gaan uit de matrix
         #  verwijderd moeten worden in het geval van collision gezien die
         #  anders vrij gauw vol raakt. bij collision met een bullet is het ID
-        #  dus niet representatief.
+        #  dus niet representatief. de collision flag kolom zou ook gevuld
+        #  kunnen worden met de relevante entity type, maar zolang dat nog
+        #  nergens voor gebruikt wordt laat ik dit zo
 
         self.scalars[:self.n_total, 12] += (self.scalars[:self.n_total, 12] == -1) * (coll_indices + 1)
