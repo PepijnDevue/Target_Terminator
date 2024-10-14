@@ -3,19 +3,23 @@ import time
 
 from simulation.airplanes import Airplanes
 from simulation.targets import Targets
+from simulation.bullets import Bullets
+
 
 class Entities:
     def __init__(self, scalars, vectors, n_entities):
-        self.scalars = np.ones((n_entities, scalars.shape[1]))
-        self.vectors = np.ones((n_entities, vectors.shape[1], 2))
+        self.scalars = np.zeros((n_entities, scalars.shape[1]))
+        self.vectors = np.zeros((n_entities, vectors.shape[1], 2))
+        self.scalars[:,11] = -1
+        self.scalars[:,12] = -1
 
         self.scalars[:scalars.shape[0]] = scalars
         self.vectors[:vectors.shape[0]] = vectors
+
         self.n_planes = np.sum(scalars[:,11]==0)
         self.n_targets = np.sum(scalars[:,11]==1)
         self.n_bullets = 0
         self.n_total = self.n_planes + self.n_targets
-
 
         self.airplanes = Airplanes(
             self.scalars[:self.n_planes],
@@ -25,11 +29,33 @@ class Entities:
             self.scalars[self.n_planes:self.n_planes+self.n_targets],
             self.vectors[self.n_planes:self.n_planes+self.n_targets]
         )
+        self.bullets = Bullets(
+            self.scalars[self.n_planes + self.n_targets:],
+            self.vectors[self.n_planes + self.n_targets:]
+        )
 
     def tick(self, dt, actions):
-        self.airplanes.tick(dt, actions)  # voor als je non-airplane agents wilt toevoegen: actions -> actions[:n_planes]
+        self.airplanes.tick(dt, actions)
+        # voor als je non-airplane agents wilt toevoegen: actions -> actions[:n_planes] oid
+        #  vooralsnog ga ik er van uit dat alle agents vliegtuigen zijn
+
         self.collision()
-        # TODO: bullets
+
+        shoot_id = actions[actions[:, 1] == 3]
+        if shoot_id.shape[0]!=0:
+            self.spawn_bullet(dt, shoot_id[:,0])
+
+        # TODO: despawn bullets
+
+    def spawn_bullet(self, dt, id):
+        # TODO: firerate?
+        # TODO: dit is ook niet getest  maar ik weet like 80% zeker dat het werkt
+        pos = self.vectors[id,3] + self.vectors[id,4] * (self.scalars[id,9][:,None] + 2)
+        v = self.vectors[id,2] + 100
+        vectors = np.zeros((id.shape[0], self.vectors.shape[1]))
+        vectors[:,3] = pos
+        vectors[:,2] = v
+        self.bullets.spawn(vectors)
 
     def collision(self):
         vectors = self.vectors[:self.n_total, 3]
@@ -43,5 +69,10 @@ class Entities:
         i = np.argsort(d, axis=1)
         mask = np.min(d, axis=1) < 0
         coll_indices = np.where(mask, i[:, 0], -1)
+        # vooralsnog wordt hier het ID van de entiteit die de collision
+        #  getriggerd heeft neergezet, maar bullets gaan uit de matrix
+        #  verwijderd moeten worden in het geval van collision gezien die
+        #  anders vrij gauw vol raakt. bij collision met een bullet is het ID
+        #  dus niet representatief.
 
         self.scalars[:self.n_total, 12] += (self.scalars[:self.n_total, 12] == -1) * (coll_indices + 1)

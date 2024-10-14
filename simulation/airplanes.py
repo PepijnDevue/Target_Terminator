@@ -36,7 +36,7 @@ class Airplanes:
         norm_drag = self.scalars[:, 1] * coef_drag * np.linalg.norm(self.vectors[:, 2], axis=1)**2
         self.vectors[:, 7] = -norm_drag[:, None] * self.vectors[:, 4]
 
-        # fres
+        # fres + update v, pos
         f_res = self.vectors[:, 5] + self.vectors[:, 6] + self.vectors[:, 7] + self.vectors[:, 8]
         self.vectors[:, 2] += dt * f_res / self.scalars[:, 0][:, None]
         self.vectors[:, 3] += dt * self.vectors[:, 2]
@@ -74,8 +74,6 @@ class Airplanes:
         filter[actions[actions[:, 1] == 4][:, 0]] = 1
         self.scalars[:, 7] -= dt * 100 * filter
         self.scalars[self.scalars[:, 7] < 0, 7] = 0
-
-        # TODO: action 5 shoot
 
         # TODO: action 6 flip
 
