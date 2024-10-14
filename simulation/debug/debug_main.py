@@ -19,6 +19,13 @@ vectors = np.array(
      [  [0,0],          [0,0],          [0,0],  [-200,16.01], [0,0],  [0,0],  [0,0],  [0,0],  [0,0],  [0,0]]]
 )
 
+boundaries = np.array(
+    [
+        [0,     0   ],
+        [1280,  720 ]
+    ]
+)
+
 actions = np.array([])
 
 entities = Entities(scalars, vectors, 1000)

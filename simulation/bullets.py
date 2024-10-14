@@ -28,4 +28,5 @@ class Bullets:
         self.vectors[i] = vectors
 
     def despawn(self):
-        self.scalars[np.where((time.time() - self.scalars[:,2]) > 3), 11] = -1 # `3` = despawn tijd in s
+        self.scalars[np.where((time.time() - self.scalars[:,2]) > 3), 11] = -1  # `3` = despawn tijd in s
+        self.scalars[(self.scalars[:,12]!=-1), 11] = -1  # heeft dit zin qua runtime?

@@ -70,7 +70,7 @@ def run(entities):
         screen.blit(font.render('pitch:           ' + str(entities.scalars[:2,8]), False, 'black'), (20, 40))
         screen.blit(font.render('action:          ' + str(entities.scalars[:2,13]), False, 'black'), (20, 60))
         screen.blit(font.render('throttle:        ' + str(entities.scalars[:2,7]), False, 'black'), (20, 80))
-        # screen.blit(font.render('speed:             ' + str(-player.pos[1]), False, 'black'), (20, 100))
+        screen.blit(font.render('pos:             ' + str(entities.vectors[0,3]), False, 'black'), (20, 100))
 
         pygame.display.flip()
         dt = clock.tick(60) / 1000

@@ -7,7 +7,7 @@ from simulation.bullets import Bullets
 
 
 class Entities:
-    def __init__(self, scalars, vectors, n_entities):
+    def __init__(self, scalars, vectors, n_entities, boundaries):
         self.scalars = np.zeros((n_entities, scalars.shape[1]))
         self.vectors = np.zeros((n_entities, vectors.shape[1], 2))
         self.scalars[:,11] = -1
@@ -15,6 +15,7 @@ class Entities:
 
         self.scalars[:scalars.shape[0]] = scalars
         self.vectors[:vectors.shape[0]] = vectors
+        self.boundaries = boundaries
 
         self.n_planes = np.sum(scalars[:,11]==0)
         self.n_targets = np.sum(scalars[:,11]==1)
@@ -88,3 +89,6 @@ class Entities:
         #  nergens voor gebruikt wordt laat ik dit zo
 
         self.scalars[:self.n_total, 12] += (self.scalars[:self.n_total, 12] == -1) * (coll_indices + 1)
+
+    def coll_boundaries(self):
+        pass
