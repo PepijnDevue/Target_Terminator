@@ -26,7 +26,7 @@ def check_bullet_collision(
         window_width: int
     )-> bool:
     """
-    This function checks all the collision a bullet could experience. If
+    This function checks all the entity_collision a bullet could experience. If
     a bullet hits a target, the function returns True
 
     @params:

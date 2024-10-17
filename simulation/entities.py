@@ -15,7 +15,7 @@ class Entities:
 
         self.scalars[:scalars.shape[0]] = scalars
         self.vectors[:vectors.shape[0]] = vectors
-        self.boundaries = boundaries
+        self.boundaries = boundaries  # boundaries heeft het format [[domein_x],[domein_y]], dus bijv. [[0,1280],[0,720]]
 
         self.n_planes = np.sum(scalars[:,11]==0)
         self.n_targets = np.sum(scalars[:,11]==1)
@@ -41,15 +41,13 @@ class Entities:
         # voor als je non-airplane agents wilt toevoegen: actions -> actions[:n_planes] oid
         #  vooralsnog ga ik er van uit dat alle agents vliegtuigen zijn
 
-        self.collision()
+        self.entity_collision()
 
         shoot_id = actions[actions[:, 1] == 5]
         if shoot_id.shape[0]!=0:
             self.spawn_bullet(dt, shoot_id[:,0])
+        self.n_total += self.bullets.despawn()
 
-        self.bullets.despawn()
-
-        # TODO: map boundaries, grond
         # TODO: `tick` uitvoeren op *alleen* die rijen die 'levend' zijn, kan
         #  wellicht sneller zijn, het kan echter ook dat het slicen/masken meer
         #  tijd kost dan de overbodige berekeningen
@@ -62,33 +60,36 @@ class Entities:
         vectors[:,3] = pos
         vectors[:,2] = v
         self.n_bullets += id.shape[0]
+        self.n_total += id.shape[0]
         self.bullets.spawn(vectors)
 
-    def collision(self):
-        # `collision` gaat er van uit dat alle hitboxen 'rond' zijn, dit is
+    def entity_collision(self):
+        # `entity_collision` gaat er van uit dat alle hitboxen 'rond' zijn, dit is
         #  natuurlijk niet realistisch maar maakt het wel aanzienlijk veel
         #  sneller te berekenen, en op hoge snelheden maakt een exacte hitbox
         #  toch niet super veel uit
-        vectors = self.vectors[:self.n_total, 3]
-        d_curr = np.linalg.norm(vectors[:, np.newaxis] - vectors, axis=2)
+        vectors = self.vectors[(self.scalars[:,11] != -1) & (self.scalars[:,12] == -1)]
+        scalars = self.scalars[(self.scalars[:,11] != -1) & (self.scalars[:,12] == -1)]
 
-        scalars = self.scalars[:self.n_total, 9]
-        d_min = scalars[:, np.newaxis] + scalars
+        positions = vectors[:, 3]
+        d_curr = np.linalg.norm(positions[:, np.newaxis] - positions, axis=2)
+
+        radii = scalars[:, 9]
+        d_min = radii[:, np.newaxis] + radii
         np.fill_diagonal(d_min, -1)
 
         d = d_curr - d_min
         i = np.argsort(d, axis=1)
         mask = np.min(d, axis=1) < 0
         coll_indices = np.where(mask, i[:, 0], -1)
-        # vooralsnog wordt hier het ID van de entiteit die de collision
-        #  getriggerd heeft neergezet, maar bullets gaan uit de matrix
-        #  verwijderd moeten worden in het geval van collision gezien die
-        #  anders vrij gauw vol raakt. bij collision met een bullet is het ID
-        #  dus niet representatief. de collision flag kolom zou ook gevuld
-        #  kunnen worden met de relevante entity type, maar zolang dat nog
-        #  nergens voor gebruikt wordt laat ik dit zo
 
-        self.scalars[:self.n_total, 12] += (self.scalars[:self.n_total, 12] == -1) * (coll_indices + 1)
+        coll_entity_types = np.where(coll_indices != -1, scalars[coll_indices, 11], -1)
 
-    def coll_boundaries(self):
-        pass
+        # dit is helemaal kut
+        in_bounds = (positions[:, 0] <= self.boundaries[0, 0]) | (
+                    positions[:, 0] >= self.boundaries[0, 1]) | (positions[:, 1] <= self.boundaries[1, 0]) | (
+                    positions[:, 1] >= self.boundaries[1, 1])
+
+        coll_entity_types = np.where(in_bounds, 3, coll_entity_types)
+
+        self.scalars[(self.scalars[:,11] != -1) & (self.scalars[:,12] == -1), 12] += (coll_entity_types + 1)

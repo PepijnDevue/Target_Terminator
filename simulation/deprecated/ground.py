@@ -9,7 +9,7 @@ class Ground:
     with the plane. It is configured to be a floor object.
 
     @public member variables:
-        + coll_elevation (int): y value (from top) for the collision
+        + coll_elevation (int): y value (from top) for the entity_collision
         + sprite (None | pygame.Surface): sprite for ground, if provided
     """
     def __init__(
