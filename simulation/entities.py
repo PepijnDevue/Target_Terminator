@@ -64,32 +64,24 @@ class Entities:
         self.bullets.spawn(vectors)
 
     def entity_collision(self):
-        # `entity_collision` gaat er van uit dat alle hitboxen 'rond' zijn, dit is
-        #  natuurlijk niet realistisch maar maakt het wel aanzienlijk veel
-        #  sneller te berekenen, en op hoge snelheden maakt een exacte hitbox
-        #  toch niet super veel uit
-        vectors = self.vectors[(self.scalars[:,11] != -1) & (self.scalars[:,12] == -1)]
-        scalars = self.scalars[(self.scalars[:,11] != -1) & (self.scalars[:,12] == -1)]
+        mask = (self.scalars[:, 11] != -1) & (self.scalars[:, 12] == -1)
+        vectors = self.vectors[mask]
+        scalars = self.scalars[mask]
 
-        positions = vectors[:, 3]
-        d_curr = np.linalg.norm(positions[:, np.newaxis] - positions, axis=2)
-
+        pos = vectors[:, 3]
         radii = scalars[:, 9]
-        d_min = radii[:, np.newaxis] + radii
-        np.fill_diagonal(d_min, -1)
 
-        d = d_curr - d_min
-        i = np.argsort(d, axis=1)
-        mask = np.min(d, axis=1) < 0
-        coll_indices = np.where(mask, i[:, 0], -1)
+        d = np.sum((pos[:, np.newaxis] - pos) ** 2, axis=2)
+        r = (radii[:, np.newaxis] + radii) ** 2
+        np.fill_diagonal(r, -1)
+        collision = np.any(d < r, axis=1)
 
-        coll_entity_types = np.where(coll_indices != -1, scalars[coll_indices, 11], -1)
+        bounds = (
+            pos[:, 0] <= self.boundaries[0, 0]) | (
+            pos[:, 0] >= self.boundaries[0, 1]) | (
+            pos[:, 1] <= self.boundaries[1, 0]) | (
+            pos[:, 1] >= self.boundaries[1, 1]
+        )
 
-        # dit is helemaal kut
-        in_bounds = (positions[:, 0] <= self.boundaries[0, 0]) | (
-                    positions[:, 0] >= self.boundaries[0, 1]) | (positions[:, 1] <= self.boundaries[1, 0]) | (
-                    positions[:, 1] >= self.boundaries[1, 1])
-
-        coll_entity_types = np.where(in_bounds, 3, coll_entity_types)
-
-        self.scalars[(self.scalars[:,11] != -1) & (self.scalars[:,12] == -1), 12] += (coll_entity_types + 1)
+        # nu is het dus -1 wanneer geen collision, 1 wanneer wel
+        self.scalars[mask, 12] = np.where(collision | bounds, 1, -1)

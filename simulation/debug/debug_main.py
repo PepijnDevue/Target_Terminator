@@ -1,5 +1,6 @@
 from simulation.entities import Entities
 import debug_game_loop
+import debug_game_loop_headless
 import numpy as np
 
 scalars = np.array(
