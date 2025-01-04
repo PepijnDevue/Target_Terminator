@@ -3,9 +3,6 @@ import os
 import numpy as np
 
 from environment.base_env import BaseEnv
-from simulation.deprecated.plane import Plane
-from simulation.deprecated.target import Target
-from simulation.deprecated.ground import Ground
 
 
 class HumanRenderingEnv(BaseEnv):
@@ -31,13 +28,14 @@ class HumanRenderingEnv(BaseEnv):
     """
 
     def __init__(
-        self, 
+        self,
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
-        target_config: str="config/default_target.yaml"
+        target_config: str="config/default_target.yaml",
+        seed: int=42
     )-> None:
         """
-        Initializer for BaseEnv class.
+        Initializer for HumanRenderingEnv class.
 
         @params:
             - plane_config (str): Path to yaml file with plane 
@@ -47,6 +45,7 @@ class HumanRenderingEnv(BaseEnv):
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
+            - seed (int): seed for randomizer 
         """
         # place pygame window in top left of monitor(s)
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
@@ -55,7 +54,8 @@ class HumanRenderingEnv(BaseEnv):
         super().__init__(
             plane_config=plane_config,
             env_config=env_config,
-            target_config=target_config
+            target_config=target_config,
+            seed=seed
         )
 
         # sprite data is not mandatory in config, 
@@ -72,74 +72,113 @@ class HumanRenderingEnv(BaseEnv):
             "`sprite` key is not in background field in target data"
         
         self.screen = pygame.display.set_mode(
-            size=self._env_data["window_dimensions"],
-            flags=pygame.DOUBLEBUF
+            self._env_data["window_dimensions"]
         )
-        # self.font = pygame.font.SysFont(None, 24)
+        
         pygame.display.set_caption('Target terminator')
 
-        self._create_background()
+        self._create_sprites()
 
-    def _create_floor(self)-> None:
-        """
-        Create floor object for self (with sprite).
-
-        Use environment data to create Ground object.
-        """
-        self._floor = Ground(self._env_data, True)
-
-    def _create_agent(self)-> None:
-        """
-        Create agent object for self (with sprite).
-
-        Use plane and environment data to create Plane object.
-        """
-        self._agent = Plane(self._plane_data, True)
-
-    def _create_target(self)-> None:
-        """
-        Create target object for self (with sprite).
-
-        Use target data to create Target object.
-        """
-        self._target = Target(self._target_data, True)
-
-
-    def _create_background(self)-> None:
+    def _create_sprites(self)-> None:
         """
         Create background object for self.
 
         Use environment data to create background object.
         """
-        self._background = pygame.image.load(
+        self._background_sprite = pygame.image.load(
             self._env_data["background"]["sprite"]
         )
-        self._background = pygame.transform.scale(
-            self._background,
-            self._env_data["window_dimensions"]
+        self._background_sprite = pygame.transform.scale(
+            self._background_sprite,
+            pygame.display.get_surface().get_size()
         )
 
-    def _render(self)-> None:
+        self._target_sprite = pygame.transform.scale(
+            pygame.image.load(self._target_data["sprite"]), 
+            self._target_data["size"]
+        )
+
+        self._bullet_sprite = pygame.transform.scale(
+            pygame.image.load(self._plane_data["bullet_config"]["sprite"]),
+            self._plane_data["bullet_config"]["size"]
+        )
+
+        self._plane_sprite = pygame.transform.scale(
+            pygame.image.load(self._plane_data["sprite"]["side_view_dir"]),
+            self._plane_data["sprite"]["size"]
+        )
+
+    def _render(self) -> None:
         """
         Render function for all of the graphical elements of the 
         environment.
         """
-        self.screen.blit(self._background, (0, 0))
-        self.screen.blit(self._floor.sprite, [0, self._floor.coll_elevation])
-        self.screen.blit(self._target.sprite, self._target.rect)
+        # gather all rotation instructions for bullets and save to tuple
+        alive_bullets = self._entities.bullets.vectors[
+            self._entities.bullets.scalars[:, 11] != -1
+        ]
+        rotate_instructions = np.degrees(
+            np.arctan2(alive_bullets[:, 2, 0], alive_bullets[:, 2, 1]) + 270
+        ) % 360
 
-        for bullet in self._agent.bullets:
-            self.screen.blit(bullet.sprite, bullet.rect)
+        blit_data_bullets = []
+        for bullet_vectors, rotate_instruction in zip(
+            alive_bullets, 
+            rotate_instructions
+        ):
+            rotated_sprite = pygame.transform.rotate(
+                self._bullet_sprite,
+                rotate_instruction
+            )
+            # use coordinates as center for sprite
+            bullet_rect = rotated_sprite.get_rect()
+            bullet_rect.center = bullet_vectors[3]
+            blit_data_bullets.append((rotated_sprite, bullet_rect.topleft))
 
-        self.screen.blit(self._agent.sprite, self._agent.rect)
+        # gather all rotation instructions for planes and save to tuple
+        alive_airplanes = self._entities.airplanes.vectors[
+            self._entities.airplanes.scalars[:, 11] != -1
+        ]
+        rotate_instructions = self._entities.airplanes.scalars[
+            self._entities.airplanes.scalars[:, 11] != -1
+        ][:, 8]
+
+        blit_data_planes = []
+        for airplane_vectors, rotate_instruction in zip(
+            alive_airplanes, 
+            rotate_instructions
+        ):
+            rotated_sprite = pygame.transform.rotate(
+                self._plane_sprite,
+                rotate_instruction
+            )
+            # use coordinates as center for sprite
+            plane_rect = rotated_sprite.get_rect()
+            plane_rect.center = airplane_vectors[3]
+            blit_data_planes.append((rotated_sprite, plane_rect.topleft))
+
+        # put target sprite position in center
+        target_rect = self._target_sprite.get_rect()
+        target_rect.center = self._entities.targets.vectors[:, 3][0]
+
+        # blit all objects in order of background, target, bullet, plane
+        self.screen.blits(
+            blit_sequence=[
+                # Background
+                (self._background_sprite, (0, 0)),
+                # Target
+                (self._target_sprite, target_rect.topleft),
+            ] + blit_data_bullets + blit_data_planes
+        )
         
         pygame.display.flip()
+
         
     def step(self, action: int)-> np.ndarray:
         """
         Step function for environment.
 
-        Performs action on self._agent and renders frame.
+        Performs action on agent and renders frame.
 
         @params:
             - action (int): one of:
@@ -163,12 +202,12 @@ class HumanRenderingEnv(BaseEnv):
         """
         Reset environment.
 
-        Will create completely new agent and target.
+        Will create completely new entities.
         Adds new page to the history dictionary
         return initial state & info. Renders the initial frame
 
         @params:
-            - seed (int): seed used to spawn in the agent and target.
+            - seed (int): seed used to spawn in the entities.
         
         @returns:
             - np.ndarray with initial state 
