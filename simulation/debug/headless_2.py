@@ -21,7 +21,7 @@ def run(entities):
     target_sprites = []
     bullet_sprites = []
     t = time.time()
-    for j in tqdm(range(100)):
+    for j in tqdm(range(1000)):
         # e = copy.copy(entities)
         e = Entities(s.copy(), v.copy(), 1000, b)
         for i in range(100_000):
