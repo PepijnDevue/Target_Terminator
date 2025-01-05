@@ -1,6 +1,6 @@
-import itertools
 import numpy as np
 import matplotlib.pyplot as plt
+import itertools
 from matplotlib.collections import LineCollection
 
 
@@ -13,7 +13,7 @@ def create_path_plots(
     """
     Create plots that display the path of the agent.
 
-    It tries to draw background and floor of the environment on the 
+    It tries to draw background of the environment on the 
     figure. Above which it plots the x,y flight history of the agent.
     It colours this graph in accordance with the normalized reward 
     provided. It saves the figure in the provided folder. It does this
@@ -27,7 +27,7 @@ def create_path_plots(
         - env_data (dict): Environment configuration.
             See config/default_env.yaml for more info.
             In theory, it only needs to contain the window dimensions
-            and preferably the background and floor data.
+            and preferably the background data.
         - figs_stride (int): Stride for saving the figures.
     """
     obs_hist_iter = iter(observation_history.items())
@@ -46,7 +46,11 @@ def create_path_plots(
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
             
             # Create a LineCollection from the segments
-            lc = LineCollection(segments, cmap=colour_map, norm=normalize_rewards)
+            lc = LineCollection(
+                segments, 
+                cmap=colour_map, 
+                norm=normalize_rewards
+            )
             lc.set_array(np.array(rewards))
             
             fig, ax = plt.subplots()
@@ -59,18 +63,12 @@ def create_path_plots(
             ax.set_title(f"Flight path for iteration {iteration}.")
 
             # try to plot the backgrounds, if available
-            # if any of these settings are missing, nothing will be plotted
+            # if any of these settings are missing, 
+            # nothing will be plotted
             try:
                 background_image = plt.imread(env_data["background"]["sprite"])
                 ax.imshow(background_image)
 
-                ground_image = plt.imread(env_data["ground"]["sprite"])
-                ax.imshow(ground_image, extent=[
-                    0, # left
-                    env_data["window_dimensions"][0], # right
-                    env_data["window_dimensions"][1], # bottom
-                    env_data["ground"]["collision_elevation"], #top
-                ])
             except KeyError:
                 pass
 

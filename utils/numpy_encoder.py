@@ -15,21 +15,24 @@ class NumpyEncoder(json.JSONEncoder):
     @public methods:
     + default(obj: Any)-> Any
         For each object in the to-parse json file, this function will
-        convert it to a list if it is a numpy array.
+        convert it to a list if it is a numpy array or bool.
     """
     def default(self, obj: Any)-> Any:
         """
         Default converter for json files.
 
-        Converts numpy arrays to lists and ignores any others
+        Converts numpy arrays to lists and numpy bools to bools,
+        ignores any others.
 
         @params:
             - obj (Any): Object to encode.
         
         @returns:
             - Any, with exclusion of numpy arrays, as these are 
-            converted to lists.
+            converted to lists and numpy bools, which are cast to bools.
         """
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
         return super().default(obj)
