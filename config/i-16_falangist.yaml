@@ -1,5 +1,5 @@
 ####################################################
-##             Default plane yaml file            ##
+##         I-16 Falangist plane yaml file         ##
 ####################################################
 # NOTE: See validation_templates/plane_template.py # 
 #       for the parameter restrictions             #
@@ -8,17 +8,17 @@
 sprite:
     side_view_dir : "assets/i16_falangist.png"
     top_view_dir  : "assets/i16_falangist_top.png"
-    size : [24, 12] # in pixels voor de sprite
+    size : [24, 12] # in pixels
 properties:
     # scalars
     mass : 1200
     drag_constant : 0.6
-    lift_constant : 100 #FIXME: was ooit 20, nu 100  
-    lift_coefficient_aoa_0 : 0.32 # lift coefficient at aoa 0
-    drag_coefficient_aoa_0 : 0.5 # drag coefficient at aoa 0
+    lift_constant : 100 
+    lift_coefficient_aoa_0 : 0.32 # aoa = angle of attack
+    drag_coefficient_aoa_0 : 0.5
     engine_force : 300
     agility : 100
-    initial_throttle : 100 # percentage
+    initial_throttle : 100 # as percentage
     initial_pitch : 0 # in degrees
     collision_radius : 6 # in pixels
 
@@ -30,6 +30,11 @@ properties:
 
 bullet_config:
     sprite : "assets/bullet.png"
-    speed : 10
-    lifetime : 500 # amount of pixels the plane may travel
+    speed : 100 # in m/s, will be multiplied by the plane speed
+    lifetime : 180 # number of ticks the bullet may travel before death
     size : [10, 10]
+    coll_radius : 0 # in pixels around position used for collision
+    # we recommend keeping coll_radius at 0, as bullets are very small,
+    # smaller than can be displayed in the simulation
+    # the size of the sprite has no effect on the size of the actual 
+    # bullets

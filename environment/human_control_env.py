@@ -1,5 +1,5 @@
-import pygame
 import numpy as np
+import pygame
 
 from environment.human_rendering_env import HumanRenderingEnv
 
@@ -23,7 +23,11 @@ class HumanControlEnv(HumanRenderingEnv):
     + reset(seed: int=42)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
-    + close()-> None
+    + close(
+        save_json: bool=False, 
+        save_figs: bool=False, 
+        figs_stride: int=1
+      )-> None
         Closes the environment and thereby outputs its entire history.
     """
 
@@ -44,11 +48,6 @@ class HumanControlEnv(HumanRenderingEnv):
         # be controlled manually
         action = 0 
 
-        # check if the game has bene quit, which case the game is closed
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.close()
-        
         keys = pygame.key.get_pressed()
         # up = pitch up
         if keys[pygame.K_UP]:

@@ -1,14 +1,14 @@
-import yaml
 import datetime
 import json
-import os
 import numpy as np
+import os
+import yaml
 from cerberus import Validator
 
+import config.validation_templates as templates
 from simulation.entities import Entities
 from utils.numpy_encoder import NumpyEncoder
 from utils.create_path_plots import create_path_plots
-import config.validation_templates as templates
 
 
 # Define the maximum number of entities that can spawn at the same time.
@@ -36,7 +36,11 @@ class BaseEnv():
     + reset(seed: int=42)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
-    + close()-> None
+    + close(
+        save_json: bool=False, 
+        save_figs: bool=False, 
+        figs_stride: int=1
+      )-> None
         Closes the environment and thereby outputs its entire history.
     """
     
@@ -120,7 +124,13 @@ class BaseEnv():
             ]
         )
 
-        self._entities = Entities(scalars, vectors, MAX_ENTITIES, boundaries)
+        self._entities = Entities(
+            scalars=scalars, 
+            vectors=vectors, 
+            n_entities=MAX_ENTITIES, 
+            boundaries=boundaries,
+            plane_data=self._plane_data
+        )
 
     def _create_agent(self)-> tuple[np.ndarray, np.ndarray]:
         """
@@ -152,7 +162,7 @@ class BaseEnv():
         @returns:
             - tuple with numpy arrays containing scalars and vectors
         """
-        scalars = np.array(list(self._target_data.values())[3])
+        scalars = np.array(self._target_data["coll_radius"])
         # the only data needed is the collision radius
         scalars = np.concatenate(
             (
@@ -162,7 +172,7 @@ class BaseEnv():
             )
         )
 
-        vectors = np.array(list(self._target_data.values())[2])
+        vectors = np.array(self._target_data["position"])
         # the only data needed is the position
         vectors = np.concatenate(
             (
@@ -222,7 +232,7 @@ class BaseEnv():
         Check if the current conditions result in a truncated state.
 
         Truncated state is defined as a state where the agent crashes.
-        For example, the agent can crash into the ground.
+        For example, the agent can crash into the wall.
 
         @returns:
             - boolean; True if truncated, False if not

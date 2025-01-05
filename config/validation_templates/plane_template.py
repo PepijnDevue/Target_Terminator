@@ -26,9 +26,9 @@ starting_config:
     position_px_deviation : _
     size : [_, _] 
 bullet_config:
-    speed : _
     lifetime : _
     size : [_, _]
+    coll_radius : _
 ```
 """
 
@@ -102,7 +102,7 @@ PLANE_TEMPLATE = {
                 'type' : 'number',
                 'min' : 0
             },
-            # Vectors:
+            # vectors:
             'critical_aoa_lower_bound' : {
                 'required' : True,
                 'type' : 'list',
@@ -156,7 +156,7 @@ PLANE_TEMPLATE = {
             'speed' : {
                 'required' : True,
                 'type' : 'number',
-                'min' : 0
+                'min' : 0.1
             },
             'lifetime' : {
                 'required' : True,
@@ -172,6 +172,11 @@ PLANE_TEMPLATE = {
                     {'type' : 'integer', 'min' : 1}, 
                     {'type': 'integer', 'min' : 1}
                 ]
+            },
+            'coll_radius' : {
+                'required' : True,
+                'type' : 'number',
+                'min' : 0
             },
         }
     }

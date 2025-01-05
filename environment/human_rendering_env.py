@@ -1,6 +1,6 @@
-import pygame
-import os
 import numpy as np
+import os
+import pygame
 
 from environment.base_env import BaseEnv
 
@@ -23,7 +23,11 @@ class HumanRenderingEnv(BaseEnv):
     + reset(seed: int=42)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
-    + close()-> None
+    + close(
+        save_json: bool=False, 
+        save_figs: bool=False, 
+        figs_stride: int=1
+      )-> None
         Closes the environment and thereby outputs its entire history.
     """
 
@@ -66,8 +70,6 @@ class HumanRenderingEnv(BaseEnv):
             "Either `sprite`, `sprite : side_view_dir`, or `sprite : "\
             "top_view_dir` are not present in plane data."
         assert "sprite" in self._target_data, "`sprite` key not in target data"
-        assert "sprite" in self._env_data["ground"], \
-            "`sprite` key not in `ground` field in target data"
         assert "sprite" in self._env_data["background"], \
             "`sprite` key is not in background field in target data"
         
@@ -114,11 +116,15 @@ class HumanRenderingEnv(BaseEnv):
         environment.
         """
         # gather all rotation instructions for bullets and save to tuple
-        alive_bullets = self._entities.bullets.vectors[
-            self._entities.bullets.scalars[:, 11] != -1
-        ]
-        rotate_instructions = np.degrees(
-            np.arctan2(alive_bullets[:, 2, 0], alive_bullets[:, 2, 1]) + 270
+        alive_bullets = self._entities.bullets.vectors[(
+            (self._entities.bullets.scalars[:, 12] == -1) &
+            (self._entities.bullets.scalars[:, 11] != -1)
+        )]
+
+        rotate_instructions = (
+            np.degrees(
+                np.arctan2(alive_bullets[:, 2, 0], alive_bullets[:, 2, 1])
+            ) + 270
         ) % 360
 
         blit_data_bullets = []
@@ -137,10 +143,11 @@ class HumanRenderingEnv(BaseEnv):
 
         # gather all rotation instructions for planes and save to tuple
         alive_airplanes = self._entities.airplanes.vectors[
-            self._entities.airplanes.scalars[:, 11] != -1
+            (self._entities.airplanes.scalars[:, 12] == -1)
         ]
+
         rotate_instructions = self._entities.airplanes.scalars[
-            self._entities.airplanes.scalars[:, 11] != -1
+            (self._entities.airplanes.scalars[:, 12] == -1)
         ][:, 8]
 
         blit_data_planes = []
@@ -192,6 +199,14 @@ class HumanRenderingEnv(BaseEnv):
         @returns:
             - np.ndarray with observation of resulting conditions
         """
+
+        # check if the game has bene quit, which case the game is closed
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                # if you close the environment mid run, we assume you
+                # do not want to save the run information
+                self.close()
+
         step_info = super().step(action=action)
 
         self._render()
@@ -239,6 +254,7 @@ class HumanRenderingEnv(BaseEnv):
         @params:
             - save_json (bool): Save json or not.
             - save_figs (bool): Save the plots or not.
+            - figs_stride (int): Stride for saving the figures.
         """
         pygame.display.quit()
         pygame.quit()
