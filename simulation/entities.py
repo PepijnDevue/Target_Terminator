@@ -31,8 +31,7 @@ class Entities:
             1 = target, 
             2 = bullet
             3 = environment
-        12 - collision flag: -1 = alive, 
-            otherwise ID of entity that triggered collision
+        12 - collision flag: -1 = alive, 1 if not
         13 - debug
     + vectors (np.ndarray): numpy matrix with the following columns:
         0 - AoA_crit_low
@@ -96,8 +95,7 @@ class Entities:
                 1 = target, 
                 2 = bullet
                 3 = environment
-            12 - collision flag: -1 = alive, 
-                otherwise ID of entity that triggered collision
+            12 - collision flag: -1 = alive, 1 if not
             13 - debug
             - vectors (np.ndarray): 
             numpy matrix with the following columns:
