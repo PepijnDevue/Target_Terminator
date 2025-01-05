@@ -162,9 +162,6 @@ class Entities:
             - actions (np.ndarray): List of actions corresponding to the
             number of planes.
         """
-        # FUTURE: in the case of non-plane agents, 
-        # actions -> actions[:n_planes], as for the sake of runtime, we 
-        # do not support non-plane agents yet
         self.airplanes.tick(dt, actions)
         self.bullets.tick(dt)
 
