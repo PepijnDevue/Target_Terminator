@@ -140,4 +140,4 @@ cython_debug/
 
 output/*/
 *test*
-# *deprecated*
+*deprecated*
