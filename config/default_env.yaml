@@ -6,6 +6,5 @@
 ##########################################################
 
 window_dimensions : [1280, 720]
-# plane_pos_scale : 2
 background:
     sprite : "assets/background.png"

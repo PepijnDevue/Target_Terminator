@@ -27,11 +27,6 @@ ENVIRONMENT_TEMPLATE = {
             {'type' : 'integer', 'min' : 1}
         ]
     },
-    # 'plane_pos_scale' : {
-    #     'required' : True,
-    #     'min' : 0,
-    #     'type' : 'number'
-    # },
     'background' : {
         'required' : False,
         'type' : 'dict',
