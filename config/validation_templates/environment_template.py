@@ -9,10 +9,6 @@ Minimal viable yaml file looks like (_'s are placeholders for data):
 
 ```yaml
 window_dimensions : [_, _]
-plane_pos_scale : _
-ground:
-    height : _
-    collision_elevation : _
 ```
 """
 
