@@ -169,7 +169,11 @@ class Airplanes:
             - dt (float): Delta time, which controls the severity of the
             performed actions.
             - actions (np.ndarray): List of actions corresponding to the
-            number of planes.
+            number of planes. format:
+                [[<agent ID 0>, <action ID 0>],
+                [<agent ID 1>, <action ID 1>],
+                ...
+                [<agent ID n>, <action ID n>]]
         """
         l = self.scalars.shape[0]
 
