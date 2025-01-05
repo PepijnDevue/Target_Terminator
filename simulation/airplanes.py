@@ -172,7 +172,6 @@ class Airplanes:
             number of planes.
         """
         l = self.scalars.shape[0]
-        self.scalars[0, 13] = actions[0, 1]
 
         # action 1 pitch up
         filter = np.zeros(l)
