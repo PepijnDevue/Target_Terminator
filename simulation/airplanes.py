@@ -207,10 +207,10 @@ class Airplanes:
 
     def _lift_curve(self) -> np.ndarray:
         """
-        Calculate lift curve for all planes.
+        Calculate lift coefficient for all planes.
 
         @returns:
-            np.ndarray with lift curves/coefficients for all planes.
+            np.ndarray with lift coefficients for all planes.
         """
         AoA = self.scalars[:, 10]
         AoA_crit_low = self.vectors[:, 0, 0]
