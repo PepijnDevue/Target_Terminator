@@ -28,7 +28,7 @@ properties:
     initial_velocity : [100.0, 0.0] # velocity vector
     initial_position : [100, 300] # coordinate of top left most pixel
     
-    # extra
+    # other
     max_spawn_deviation : 50 # in pixels from initial_position
 
 bullet_config:
