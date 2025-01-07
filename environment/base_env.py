@@ -146,8 +146,16 @@ class BaseEnv():
         # the extra data is [aoa_degree, entity_type, coll_flag, debug]
         scalars = np.concatenate((scalars, np.array([0, 0, -1, 0])))
 
-        vectors = np.array(list(self._plane_data["properties"].values())[10:])
-        # The extra data is
+        vectors = np.array(
+            list(self._plane_data["properties"].values())[10:14]
+        )
+        # randomise spawn locations based on config
+        vectors[3] += np.random.randint(
+            low=0, 
+            high=self._plane_data["properties"]["max_spawn_deviation"],
+            size=2
+        )
+        # the extra data is
         # [v_uv, f_gravity, f_engine, f_drag, f_lift, pitch_uv]
         vectors = np.concatenate((vectors, np.zeros(shape=(6,2), dtype=float)))
 
@@ -181,7 +189,12 @@ class BaseEnv():
                 np.zeros(shape=(6,2), dtype=float)
             )
         )
-
+        # randomise spawn locations based on config
+        vectors[3] += np.random.randint(
+            low=0, 
+            high=self._target_data["max_spawn_deviation"],
+            size=2
+        )
         return scalars, vectors
 
     def _calculate_reward(self, state: np.ndarray)-> float:

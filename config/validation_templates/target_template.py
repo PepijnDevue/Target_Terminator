@@ -39,6 +39,10 @@ TARGET_TEMPLATE = {
             {'type' : 'integer', 'min' : 0}
         ]
     },
+    'max_spawn_deviation' : {
+        'type' : 'number',
+        'min' : 0
+    },
     'coll_radius' : {
         'required' : True,
         'type' : 'number',
