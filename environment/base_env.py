@@ -33,7 +33,7 @@ class BaseEnv():
         Takes a step in the environment. This means that the plane
         will be updated based on the action taken and that the 
         environment will react accordingly.
-    + reset(seed: int=42)-> tuple[np.ndarray, dict]
+    + reset(seed: int=None)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
     + close(
@@ -49,7 +49,7 @@ class BaseEnv():
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
         target_config: str="config/default_target.yaml",
-        seed: int=42
+        seed: int=None
     )-> None:
         """
         Initializer for BaseEnv class.
@@ -62,9 +62,10 @@ class BaseEnv():
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
-            - seed (int): seed for randomizer 
+            - seed (int): seed for randomizer. If None, no seed is used.
         """
-        np.random.seed(seed)
+        if seed != None:
+            np.random.seed(seed)
 
         # for saving the observation history, used in self.close()
         self._current_iteration = 0
@@ -152,7 +153,7 @@ class BaseEnv():
         # randomise spawn locations based on config
         vectors[3] += np.random.randint(
             low=0, 
-            high=self._plane_data["properties"]["max_spawn_deviation"],
+            high=50,
             size=2
         )
         # the extra data is
@@ -192,7 +193,7 @@ class BaseEnv():
         # randomise spawn locations based on config
         vectors[3] += np.random.randint(
             low=0, 
-            high=self._target_data["max_spawn_deviation"],
+            high=50,
             size=2
         )
         return scalars, vectors
@@ -335,7 +336,7 @@ class BaseEnv():
             (observation[1] - 50 if action == 5 else observation[1],) + \
             observation[2:]
 
-    def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
+    def reset(self, seed: int=None)-> tuple[np.ndarray, dict]:
         """
         Reset environment.
 
@@ -344,7 +345,8 @@ class BaseEnv():
         Returns initial state & info.
 
         @params:
-            - seed (int): seed used to spawn in the entities.
+            - seed (int): seed used to spawn in the entities. If None,
+            no seed is used.
         
         @returns:
             - np.ndarray with initial state 
@@ -352,7 +354,8 @@ class BaseEnv():
             - dict with info, made for compatibility with Gym 
             environment, but is always empty.
         """
-        np.random.seed(seed)
+        if seed != None:
+            np.random.seed(seed)
         self._create_entities()
 
         self._current_iteration += 1

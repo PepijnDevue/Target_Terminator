@@ -20,7 +20,7 @@ class HumanRenderingEnv(BaseEnv):
         Takes a step in the environment. This means that the plane
         will be updated based on the action taken and that the 
         environment will react accordingly.
-    + reset(seed: int=42)-> tuple[np.ndarray, dict]
+    + reset(seed: int=None)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
     + close(
@@ -36,7 +36,7 @@ class HumanRenderingEnv(BaseEnv):
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
         target_config: str="config/default_target.yaml",
-        seed: int=42
+        seed: int=None
     )-> None:
         """
         Initializer for HumanRenderingEnv class.
@@ -49,7 +49,7 @@ class HumanRenderingEnv(BaseEnv):
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
-            - seed (int): seed for randomizer 
+            - seed (int): seed for randomizer. If None, no seed is used.
         """
         # place pygame window in top left of monitor(s)
         os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
@@ -213,7 +213,7 @@ class HumanRenderingEnv(BaseEnv):
 
         return step_info
     
-    def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
+    def reset(self, seed: int=None)-> tuple[np.ndarray, dict]:
         """
         Reset environment.
 
@@ -222,7 +222,8 @@ class HumanRenderingEnv(BaseEnv):
         return initial state & info. Renders the initial frame
 
         @params:
-            - seed (int): seed used to spawn in the entities.
+            - seed (int): seed used to spawn in the entities. If None, 
+            no seed is used.
         
         @returns:
             - np.ndarray with initial state 
