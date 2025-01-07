@@ -153,7 +153,7 @@ class BaseEnv():
         # randomise spawn locations based on config
         vectors[3] += np.random.randint(
             low=0, 
-            high=50,
+            high=self._plane_data["properties"]["max_spawn_deviation"],
             size=2
         )
         # the extra data is
@@ -193,7 +193,7 @@ class BaseEnv():
         # randomise spawn locations based on config
         vectors[3] += np.random.randint(
             low=0, 
-            high=50,
+            high=self._target_data["max_spawn_deviation"],
             size=2
         )
         return scalars, vectors
