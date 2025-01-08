@@ -8,5 +8,5 @@
 sprite : "assets/target.png"
 size : [40, 40]
 position : [800, 500] # coordinate of center most pixel
-max_spawn_deviation : 20 # in pixels from initial_position
+max_spawn_position_deviation : 20 # in pixels from initial_position
 coll_radius : 20 # in pixels around position used for collision

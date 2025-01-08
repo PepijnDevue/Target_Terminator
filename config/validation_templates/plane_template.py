@@ -143,9 +143,14 @@ PLANE_TEMPLATE = {
                     {'type': 'integer', 'min' : 0}
                 ]
             },
-            'max_spawn_deviation' : {
+            'max_spawn_position_deviation' : {
                 'type' : 'number',
                 'min' : 0
+            },
+            'max_spawn_pitch_deviation' : {
+                'type' : 'number',
+                'min' : 0,
+                'max' : 360
             },
         }
     },
