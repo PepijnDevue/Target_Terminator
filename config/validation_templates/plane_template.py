@@ -11,21 +11,21 @@ Minimal viable yaml file looks like (_'s are placeholders for data):
 properties:
     mass : _
     drag_constant : _
-    engine_force : _
-    agility : _
     lift_constant : _
-    critical_aoa_lower_bound : [_, _] 
-    critical_aoa_higher_bound : [_, _]
     lift_coefficient_aoa_0 : _
     drag_coefficient_aoa_0 : _
-starting_config:
+    engine_force : _
+    agility : _
     initial_throttle : _
     initial_pitch : _
-    initial_velocity : [_, _]
-    initial_position : [_, _]
-    position_px_deviation : _
-    size : [_, _] 
+    collision_radius : _
+    critical_aoa_lower_bound : [_, _] 
+    critical_aoa_higher_bound : [_, _] 
+    initial_velocity : [_, _] 
+    initial_position : [_, _] 
+    max_spawn_deviation : _
 bullet_config:
+    speed : _
     lifetime : _
     size : [_, _]
     coll_radius : _
@@ -142,7 +142,16 @@ PLANE_TEMPLATE = {
                     {'type' : 'integer', 'min' : 0}, 
                     {'type': 'integer', 'min' : 0}
                 ]
-            }
+            },
+            'max_spawn_position_deviation' : {
+                'type' : 'number',
+                'min' : 0
+            },
+            'max_spawn_pitch_deviation' : {
+                'type' : 'number',
+                'min' : 0,
+                'max' : 360
+            },
         }
     },
     'bullet_config' : {

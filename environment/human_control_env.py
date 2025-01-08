@@ -20,7 +20,7 @@ class HumanControlEnv(HumanRenderingEnv):
         Takes a step in the environment. This means that the plane
         will be updated based on the action taken and that the 
         environment will react accordingly.
-    + reset(seed: int=42)-> tuple[np.ndarray, dict]
+    + reset(seed: int=None)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
     + close(

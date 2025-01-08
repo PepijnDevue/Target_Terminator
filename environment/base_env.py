@@ -33,7 +33,7 @@ class BaseEnv():
         Takes a step in the environment. This means that the plane
         will be updated based on the action taken and that the 
         environment will react accordingly.
-    + reset(seed: int=42)-> tuple[np.ndarray, dict]
+    + reset(seed: int=None)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
     + close(
@@ -49,7 +49,7 @@ class BaseEnv():
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
         target_config: str="config/default_target.yaml",
-        seed: int=42
+        seed: int=None
     )-> None:
         """
         Initializer for BaseEnv class.
@@ -62,9 +62,13 @@ class BaseEnv():
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
-            - seed (int): seed for randomizer 
+            - seed (int): seed for randomizer. If None, no seed is used.
         """
-        np.random.seed(seed)
+        if seed != None:
+            # global seeds is used to randomise the target spawning
+            np.random.seed(seed)
+        # this seed is used to randomise the plane spawning
+        self._rng = np.random.default_rng(seed)
 
         # for saving the observation history, used in self.close()
         self._current_iteration = 0
@@ -143,11 +147,43 @@ class BaseEnv():
         """
 
         scalars = np.array(list(self._plane_data["properties"].values())[:10])
+        # randomise spawn pitch based on config
+        if self._plane_data["properties"]["max_spawn_pitch_deviation"] > 0:
+            pitch_deviation = self._rng.integers(
+                low=-self._plane_data["properties"][
+                    "max_spawn_pitch_deviation"
+                ], 
+                high=self._plane_data["properties"][
+                    "max_spawn_pitch_deviation"
+                ],
+            )
+            scalars[8] += pitch_deviation
+
         # the extra data is [aoa_degree, entity_type, coll_flag, debug]
         scalars = np.concatenate((scalars, np.array([0, 0, -1, 0])))
 
-        vectors = np.array(list(self._plane_data["properties"].values())[10:])
-        # The extra data is
+        vectors = np.array(
+            list(self._plane_data["properties"].values())[10:14]
+        )
+        # randomise spawn locations based on config
+        if self._plane_data["properties"]["max_spawn_position_deviation"] > 0:
+            vectors[3] += self._rng.integers(
+                low=-self._plane_data["properties"][
+                    "max_spawn_position_deviation"
+                ], 
+                high=self._plane_data["properties"][
+                    "max_spawn_position_deviation"
+                ],
+                size=2
+            )
+        # update the velocity based on the new pitch
+        if self._plane_data["properties"]["max_spawn_pitch_deviation"] > 0:
+            pitch_angle_rad = np.radians(pitch_deviation)
+            vectors[2] = np.linalg.norm(vectors[2]) * np.array([
+                np.cos(pitch_angle_rad),
+                np.sin(pitch_angle_rad)
+            ])
+        # the extra data is
         # [v_uv, f_gravity, f_engine, f_drag, f_lift, pitch_uv]
         vectors = np.concatenate((vectors, np.zeros(shape=(6,2), dtype=float)))
 
@@ -181,7 +217,13 @@ class BaseEnv():
                 np.zeros(shape=(6,2), dtype=float)
             )
         )
-
+        # randomise spawn locations based on config
+        if self._target_data["max_spawn_position_deviation"] > 0:
+            vectors[3] += np.random.randint(
+                low=-self._target_data["max_spawn_position_deviation"], 
+                high=self._target_data["max_spawn_position_deviation"],
+                size=2
+            )
         return scalars, vectors
 
     def _calculate_reward(self, state: np.ndarray)-> float:
@@ -322,7 +364,7 @@ class BaseEnv():
             (observation[1] - 50 if action == 5 else observation[1],) + \
             observation[2:]
 
-    def reset(self, seed: int=42)-> tuple[np.ndarray, dict]:
+    def reset(self, seed: int=None)-> tuple[np.ndarray, dict]:
         """
         Reset environment.
 
@@ -331,7 +373,8 @@ class BaseEnv():
         Returns initial state & info.
 
         @params:
-            - seed (int): seed used to spawn in the entities.
+            - seed (int): seed used to spawn in the entities. If None,
+            no seed is used.
         
         @returns:
             - np.ndarray with initial state 
@@ -339,7 +382,8 @@ class BaseEnv():
             - dict with info, made for compatibility with Gym 
             environment, but is always empty.
         """
-        np.random.seed(seed)
+        if seed != None:
+            np.random.seed(seed)
         self._create_entities()
 
         self._current_iteration += 1
