@@ -15,13 +15,10 @@ window_dimensions : [_, _]
 ENVIRONMENT_TEMPLATE = {
     'window_dimensions' : {
         'required' : True,
-        'type' : 'list',
+        'type' : 'array',
         'minlength' : 2, 
         'maxlength' : 2,
-        'items' : [
-            {'type' : 'integer', 'min' : 1}, 
-            {'type' : 'integer', 'min' : 1}
-        ]
+        'items' : {'type' : 'integer', 'min' : 1}
     },
     'background' : {
         'required' : False,
