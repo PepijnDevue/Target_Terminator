@@ -360,9 +360,9 @@ class BaseEnv():
         observation = self._calculate_observation()
         self._observation_history[self._current_iteration].append(observation)
         
-        return observation[:1] + \
-            (observation[1] - 50 if action == 5 else observation[1],) + \
-            observation[2:]
+        if action == 5:
+            return observation[:1] + (observation[1] - 50,) + observation[2:]
+        return observation
 
     def reset(self, seed: int=None)-> tuple[np.ndarray, dict]:
         """
