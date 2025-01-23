@@ -13,9 +13,9 @@ target0:
   # in pixels around position used for collision
   # we recommend using half of the average size component
   coll_radius : 20 
-target1:
-  sprite : "assets/target.png"
-  size : [50, 50]
-  position : [900, 100] 
-  max_spawn_position_deviation : 20
-  coll_radius : 25
+# target1:
+#   sprite : "assets/target.png"
+#   size : [50, 50]
+#   position : [900, 100] 
+#   max_spawn_position_deviation : 20
+#   coll_radius : 25
