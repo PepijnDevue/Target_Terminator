@@ -246,7 +246,7 @@ class BaseEnv():
         zero and two. It will be multiplied by -100 to make the reward
         fall between -200 and 0. This result will then be multiplied by
         the number of remaining targets, as to punish the agent less the
-        more targets it has shot down.
+        more targets it has shot.
 
         NOTE: function does not check for validity of state parameter
 
