@@ -56,7 +56,7 @@ def make(
         - target_config (str): Path to yaml file with target 
         configuration. See config/default_target.yaml for more 
         info.
-        - seed (int): seed for randomizer. If None, no seed is used.
+        - seed (int): Seed for randomizer. If None, no seed is used.
     """
     env = None
     match render_mode:

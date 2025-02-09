@@ -62,7 +62,7 @@ class BaseEnv():
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
-            - seed (int): seed for randomizer. If None, no seed is used.
+            - seed (int): Seed for randomizer. If None, no seed is used.
         """
         if seed != None:
             # global seeds is used to randomise the target spawning
