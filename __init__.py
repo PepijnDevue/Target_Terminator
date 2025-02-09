@@ -32,9 +32,9 @@ from environment.human_control_env import HumanControlEnv
 
 def make(
     render_mode: str=None, 
-    plane_config = "config/i-16_falangist.yaml",
-    env_config = "config/default_env.yaml",
-    target_config = "config/default_target.yaml",
+    plane_config: str="config/i-16_falangist.yaml",
+    env_config: str="config/default_env.yaml",
+    target_config: str="config/default_target.yaml",
     seed: int=None
 ) -> BaseEnv:
     """
