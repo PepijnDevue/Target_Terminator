@@ -3,7 +3,7 @@ import json
 import numpy as np
 import os
 import yaml
-from cerberus import Validator
+from jsonschema import validate, ValidationError
 
 import config.validation_templates as templates
 from simulation.entities import Entities
@@ -62,7 +62,7 @@ class BaseEnv():
             - target_config (str): Path to yaml file with target 
             configuration. See config/default_target.yaml for more 
             info.
-            - seed (int): seed for randomizer. If None, no seed is used.
+            - seed (int): Seed for randomizer. If None, no seed is used.
         """
         if seed != None:
             # global seeds is used to randomise the target spawning
@@ -78,27 +78,32 @@ class BaseEnv():
         self._dt = 1 / 60
         
         # validate all of the provided config files
-        validator = Validator()
         with open(plane_config, 'r') as stream:
             self._plane_data = yaml.safe_load(stream)
-        assert validator.validate(
-            self._plane_data, 
-            templates.PLANE_TEMPLATE
-        ), f"A validation error occurred in the plane data: {validator.errors}"
+        try:
+            validate(self._plane_data, templates.PLANE_TEMPLATE)
+        except ValidationError as e:
+            print(
+                f"A validation error occurred in the plane data: {e.message}"
+            )
 
         with open(env_config, 'r') as stream:
             self._env_data = yaml.safe_load(stream)
-        assert validator.validate(
-            self._env_data, 
-            templates.ENVIRONMENT_TEMPLATE
-        ), f"A validation error occurred in the env data: {validator.errors}"
+        try:
+            validate(self._env_data, templates.ENVIRONMENT_TEMPLATE)
+        except ValidationError as e:
+            print(
+                f"A validation error occurred in the env data: {e.message}"
+            )
 
         with open(target_config, 'r') as stream:
             self._target_data = yaml.safe_load(stream)
-        assert validator.validate(
-            self._target_data, 
-            templates.TARGET_TEMPLATE
-        ),f"A validation error occurred in the target data: {validator.errors}"
+        try:
+            validate(self._target_data, templates.TARGET_TEMPLATE)
+        except ValidationError as e:
+            print(
+                f"A validation error occurred in the target data: {e.message}"
+            )
 
         # reserve memory for necessary member objects
         self._entities = None
@@ -114,13 +119,14 @@ class BaseEnv():
         which it uses to create an Entities object.
         """
         agent_scalars, agent_vectors = self._create_agent()
-        target_scalars, target_vectors = self._create_target()
-        scalars = np.array([agent_scalars, target_scalars])
-
-        vectors = np.array([agent_vectors, target_vectors])
+        agent_scalars = agent_scalars.reshape((1,) + agent_scalars.shape)
+        agent_vectors = agent_vectors.reshape((1,) + agent_vectors.shape)
+        target_scalars, target_vectors = self._create_targets()
+        
+        scalars = np.concatenate((agent_scalars, target_scalars))
+        vectors = np.concatenate((agent_vectors, target_vectors))
 
         window_dimensions = self._env_data["window_dimensions"]
-
         boundaries = np.array(
             [
                 [0,  window_dimensions[0]],
@@ -189,41 +195,45 @@ class BaseEnv():
 
         return scalars, vectors
 
-    def _create_target(self)-> tuple[np.ndarray, np.ndarray]:
+    def _create_targets(self)-> tuple[np.ndarray, np.ndarray]:
         """
-        Create target object for self.
+        Create target object(s) for self.
 
         Use target data to create Target object.
 
         @returns:
             - tuple with numpy arrays containing scalars and vectors
         """
-        scalars = np.array(self._target_data["coll_radius"])
-        # the only data needed is the collision radius
-        scalars = np.concatenate(
-            (
-                np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]),
-                np.array([scalars]),
-                np.array([0, 1, -1, 0])
-            )
-        )
+        # each key in the target data is equal to a new target, 
+        # the validation template guarantees this
+        n_targets = len(self._target_data)
+        scalars = np.zeros(shape=(n_targets, 14))
+        vectors = np.zeros(shape=(n_targets, 10, 2))
 
-        vectors = np.array(self._target_data["position"])
-        # the only data needed is the position
-        vectors = np.concatenate(
-            (
-                np.zeros(shape=(3,2), dtype=float),
-                np.array([vectors]),
-                np.zeros(shape=(6,2), dtype=float)
-            )
-        )
-        # randomise spawn locations based on config
-        if self._target_data["max_spawn_position_deviation"] > 0:
-            vectors[3] += np.random.randint(
-                low=-self._target_data["max_spawn_position_deviation"], 
-                high=self._target_data["max_spawn_position_deviation"],
-                size=2
-            )
+        for i, target_key in enumerate(list(self._target_data.keys())):
+            # set coll radius from template
+            scalars[i, 9] = self._target_data[target_key]["coll_radius"]
+            # set entity type flag to target
+            scalars[i, 11] = 1
+            # set collision flag to alive
+            scalars[i, 12] = -1
+
+            # set position from template
+            vectors[i, 3] = np.array(self._target_data[target_key]["position"])
+            
+            # randomise spawn location based on config
+            if self._target_data[target_key][
+                "max_spawn_position_deviation"
+            ] > 0:
+                vectors[i, 3] += np.random.randint(
+                    low=-self._target_data[target_key][
+                        "max_spawn_position_deviation"
+                    ], 
+                    high=self._target_data[target_key][
+                        "max_spawn_position_deviation"
+                    ],
+                    size=2
+                )
         return scalars, vectors
 
     def _calculate_reward(self, state: np.ndarray)-> float:
@@ -232,7 +242,11 @@ class BaseEnv():
 
         Reward is equal to the difference between the unit vector from 
         the plane to the target and the unit vector for the plane's 
-        velocity will be subtracted.
+        velocity will be subtracted. This difference is a value between
+        zero and two. It will be multiplied by -100 to make the reward
+        fall between -200 and 0. This result will then be multiplied by
+        the number of remaining targets, as to punish the agent less the
+        more targets it has shot.
 
         NOTE: function does not check for validity of state parameter
 
@@ -243,19 +257,42 @@ class BaseEnv():
                 * y (float): y position of plane
                 * velocity_x (float): velocity of plane in x direction
                 * velocity_y (float): velocity of plane in y direction
+                * n_targets (int): number of targets remaining
         
         @returns:
             - float with reward.
         """
-        direction_to_target = self._entities.targets.vectors[0, 3] - state[:2]
-        
-        unit_vector_to_target = direction_to_target / \
-            np.linalg.norm(direction_to_target)
+        # find closest target for reward
+        closest_target_distance = float("inf")
+        i_closest_target = None
+        for i, (target_scalars, target_vectors) in enumerate(
+            zip(self._entities.targets.scalars, self._entities.targets.vectors)
+        ):
+            if target_scalars[12] == -1:
+                distance = np.linalg.norm(target_vectors[3] - state[:2]) 
+                if distance < closest_target_distance:
+                    closest_target_distance = distance
+                    i_closest_target = i
 
-        velocity = state[2:4]
-        unit_vector_agent = velocity / np.linalg.norm(velocity)
+        if i_closest_target != None:
+            direction_to_target = self._entities.targets.vectors[
+                i_closest_target, 
+                3
+            ] - state[:2]
+                
+            unit_vector_to_target = direction_to_target / \
+                np.linalg.norm(direction_to_target)
 
-        return -50 * np.linalg.norm(unit_vector_agent - unit_vector_to_target) 
+            velocity = state[2:4]
+            unit_vector_agent = velocity / np.linalg.norm(velocity)
+
+            return -100 * np.linalg.norm(
+                unit_vector_agent - unit_vector_to_target
+            ) * state[4]
+        # for the last state, if agent succeeded we dont need to 
+        # calculate any distance, reward should be zero
+        else:
+            return 0
     
     def _check_if_terminated(self)-> bool:
         """
@@ -293,24 +330,29 @@ class BaseEnv():
                 * y (float): y position of plane
                 * velocity_x (float): velocity of plane in x direction
                 * velocity_y (float): velocity of plane in y direction
+                * n_targets (int): number of targets remaining
             - reward (see self._calculate_reward())
-                terminal states are rewarded a bonus of 1,000,000, 
-                whilst truncated states are rewarded with -1,000,000,000
+                terminal states are rewarded a bonus, 
+                whilst truncated states are punished.
             - is_terminal (see self._check_if_terminal)
             - is_truncated (see self._check_if_truncated)
             - info, made for compatibility with Gym environment, 
             but is always empty.
 
         @returns:
-             - np.ndarray with state
-             - float with reward
-             - bool with is_terminal
-             - bool with is_truncated
-             - dict with info (always empty)
+            - np.ndarray with state
+            - float with reward
+            - bool with is_terminal
+            - bool with is_truncated
+            - dict with info (always empty)
         """
         pos = self._entities.airplanes.vectors[0, 3]
         v = self._entities.airplanes.vectors[0, 2]
-        state = np.concatenate((pos, v), axis=None)
+        n_remaining_targets = np.count_nonzero(self._entities.targets.scalars[:, 12] == -1)
+        state = np.concatenate(
+            (pos, v, np.array(n_remaining_targets)), 
+            axis=None
+        )
         
         is_terminated = self._check_if_terminated()
         is_truncated = self._check_if_truncated()
@@ -319,7 +361,7 @@ class BaseEnv():
         if is_terminated:
             reward += 200
         if is_truncated:
-            reward -= 1_000
+            reward -= 100
 
         return(state, reward, is_terminated, is_truncated, {})
 
@@ -340,6 +382,10 @@ class BaseEnv():
         Step function for environment.
 
         Performs action on agent.
+        If the action is shooting, the environment will calculate if the
+        bullet will end up hitting the target. If this is the case, the
+        reward will be altered with a bonus of 50. If it misses, there 
+        will be a punishment of -5 reward.
 
         @params:
             - action (int): one of:
@@ -360,8 +406,62 @@ class BaseEnv():
         observation = self._calculate_observation()
         self._observation_history[self._current_iteration].append(observation)
         
+        # if the action was shoot, alter the reward accordingly
         if action == 5:
-            return observation[:1] + (observation[1] - 50,) + observation[2:]
+            # first bullet is most recent one shot
+            bullet_scalars = self._entities.bullets.scalars[0]
+            bullet_vectors = self._entities.bullets.vectors[0]
+            # calculate remaining bullet lifespan in ticks
+            remaining_bullet_lifetime = self._plane_data["bullet_config"] \
+                ["lifetime"] - bullet_scalars[2]
+            # simulate bullet destination using dt, ticks and velocity
+            bullet_destination = bullet_vectors[3] + bullet_vectors[2] * \
+                self._dt * remaining_bullet_lifetime
+
+            direction_vector_bullet = bullet_destination - bullet_vectors[3]
+            bullet_line_length = np.linalg.norm(direction_vector_bullet)
+            norm_direction_vector_bullet = \
+                direction_vector_bullet / bullet_line_length
+
+            # get all alive targets
+            target_indices = np.where(
+                (self._entities.targets.scalars[:, 12] == -1) & 
+                (self._entities.targets.scalars[:, 13] == 0)
+            )[0]
+            target_positions = self._entities.targets.vectors[
+                target_indices, 
+                3
+            ]
+            target_radii = self._entities.targets.scalars[target_indices, 9] 
+
+            # for each target, see if bullet will hit.
+            for i, (target_pos, target_rad) in enumerate(
+                zip(target_positions, target_radii)
+            ):
+                # effective radius also takes bullet radius into acount
+                effective_radius = bullet_scalars[9] + target_rad
+
+                bullet_start_to_target = target_pos - bullet_vectors[3]
+                projection_length = np.dot(
+                    bullet_start_to_target, 
+                    norm_direction_vector_bullet
+                )
+                # closest point on the trajectory
+                closest_point = bullet_vectors[3] + \
+                    norm_direction_vector_bullet * \
+                    np.clip(projection_length, 0, bullet_line_length)
+                distance_to_center = np.linalg.norm(target_pos- closest_point)
+
+                # if bullet will hit, set debug of target and return 
+                # positively altered reward
+                if distance_to_center <= effective_radius:
+                    self._entities.targets.scalars[i, 13] = 1
+                    return observation[:1] + \
+                        (observation[1] + 50,) + \
+                        observation[2:]
+            # if bullet does not hit, give small punishment
+            return observation[:1] + (observation[1] - 5,) + observation[2:]
+        # if no bullets are shot, return observation as is
         return observation
 
     def reset(self, seed: int=None)-> tuple[np.ndarray, dict]:
@@ -393,7 +493,11 @@ class BaseEnv():
         # its rect
         pos = self._entities.airplanes.vectors[0, 3]
         v = self._entities.airplanes.vectors[0, 2]
-        return np.concatenate((pos, v), axis=None), {}
+        n_remaining_targets = len(self._entities.targets.scalars) - \
+            np.sum(self._entities.targets.scalars[:, 12])
+        return np.concatenate(
+            (pos, v, np.array(n_remaining_targets)), axis=None
+        ), {}
 
     def close(
         self, 

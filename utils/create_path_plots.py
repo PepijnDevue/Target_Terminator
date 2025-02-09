@@ -35,7 +35,9 @@ def create_path_plots(
         obs_hist_iter, 0, None, figs_stride
     ):
         try:
-            vertices = [(x, y, r) for (x, y, _, _), r, _, _, _ in observations]
+            vertices = [
+                (x, y, r) for (x, y, _, _, _), r, _, _, _ in observations
+            ]
             
             xs, ys, rewards = zip(*vertices)
             normalize_rewards = plt.Normalize(min(rewards), max(rewards))
@@ -70,6 +72,12 @@ def create_path_plots(
                 ax.imshow(background_image)
 
             except KeyError:
+                print(
+                    "\033[31mERROR OCCURRED DURING PLOTTING FIGURES: Unable to"
+                    " locate background image from environment data. Ignoring "
+                    "issue and attempting to make plots without background ima"
+                    "ge.\033[37m"
+                )
                 pass
 
             plt.savefig(f"{folder_path}/flight_path_it-{iteration}")

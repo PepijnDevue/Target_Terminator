@@ -69,7 +69,9 @@ class HumanRenderingEnv(BaseEnv):
             "top_view_dir" in self._plane_data["sprite"], \
             "Either `sprite`, `sprite : side_view_dir`, or `sprite : "\
             "top_view_dir` are not present in plane data."
-        assert "sprite" in self._target_data, "`sprite` key not in target data"
+        for target_key in self._target_data.keys():
+            assert "sprite" in self._target_data[target_key], \
+            f"`sprite` key not in target data['target_key']"
         assert "sprite" in self._env_data["background"], \
             "`sprite` key is not in background field in target data"
         
@@ -95,10 +97,10 @@ class HumanRenderingEnv(BaseEnv):
             pygame.display.get_surface().get_size()
         )
 
-        self._target_sprite = pygame.transform.scale(
-            pygame.image.load(self._target_data["sprite"]), 
-            self._target_data["size"]
-        )
+        self._target_sprites = [pygame.transform.scale(
+            pygame.image.load(self._target_data[target_key]["sprite"]), 
+            self._target_data[target_key]["size"]
+        ) for target_key in self._target_data.keys()]
 
         self._bullet_sprite = pygame.transform.scale(
             pygame.image.load(self._plane_data["bullet_config"]["sprite"]),
@@ -164,18 +166,20 @@ class HumanRenderingEnv(BaseEnv):
             plane_rect.center = airplane_vectors[3]
             blit_data_planes.append((rotated_sprite, plane_rect.topleft))
 
-        # put target sprite position in center
-        target_rect = self._target_sprite.get_rect()
-        target_rect.center = self._entities.targets.vectors[:, 3][0]
+        # put target sprite(s) position in center
+        blit_data_targets = []
+        for i, target_sprite in enumerate(self._target_sprites):
+            if self._entities.targets.scalars[i, 12] == -1:
+                target_rect = target_sprite.get_rect()
+                target_rect.center = self._entities.targets.vectors[i, 3]
+                blit_data_targets.append((target_sprite, target_rect.topleft))
 
         # blit all objects in order of background, target, bullet, plane
         self.screen.blits(
             blit_sequence=[
                 # Background
                 (self._background_sprite, (0, 0)),
-                # Target
-                (self._target_sprite, target_rect.topleft),
-            ] + blit_data_bullets + blit_data_planes
+            ] + blit_data_targets + blit_data_bullets + blit_data_planes
         )
         
         pygame.display.flip()

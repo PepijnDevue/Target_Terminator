@@ -5,8 +5,17 @@
 #       for the parameter restrictions              #
 #####################################################
 
-sprite : "assets/target.png"
-size : [40, 40]
-position : [800, 500] # coordinate of center most pixel
-max_spawn_position_deviation : 20 # in pixels from initial_position
-coll_radius : 20 # in pixels around position used for collision
+target0:
+  sprite : "assets/target.png" # we recommend a circular target
+  size : [40, 40]
+  position : [800, 500] # coordinate of center most pixel
+  max_spawn_position_deviation : 20 # in pixels from initial_position
+  # in pixels around position used for collision
+  # we recommend using half of the average size component
+  coll_radius : 20 
+# target1:
+#   sprite : "assets/target.png"
+#   size : [50, 50]
+#   position : [900, 100] 
+#   max_spawn_position_deviation : 20
+#   coll_radius : 25
