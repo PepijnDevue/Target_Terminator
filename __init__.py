@@ -57,6 +57,9 @@ def make(
         configuration. See config/default_target.yaml for more 
         info.
         - seed (int): Seed for randomizer. If None, no seed is used.
+
+    @returns:
+        Environment corresponding to the provided parameters.
     """
     env = None
     match render_mode:
