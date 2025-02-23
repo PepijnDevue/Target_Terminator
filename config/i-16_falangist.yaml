@@ -6,9 +6,8 @@
 ####################################################
 
 sprite:
-    side_view_dir : "assets/i16_falangist.png"
-    top_view_dir  : "assets/i16_falangist_top.png"
-    size : [24, 12] # in pixels
+    side_view_dir : "assets/republican_i16_polikarpov.png"
+    size : [36, 18] # in pixels
 properties:
     # scalars
     mass : 1200

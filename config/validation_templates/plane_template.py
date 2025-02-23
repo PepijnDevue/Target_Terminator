@@ -42,9 +42,6 @@ PLANE_TEMPLATE = PLANE_TEMPLATE = {
                 'side_view_dir': {
                     'type': 'string'
                 },
-                'top_view_dir': {
-                    'type': 'string'
-                },
                 'size': {
                     'type': 'array',
                     'minItems': 2,

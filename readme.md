@@ -75,3 +75,6 @@ env = TT.make(
     target_config="config/new_target.yaml"
 )
 ```
+
+### Special thanks
+Special thanks to our Latvian friend Lelant, who kindly made the background sprites.

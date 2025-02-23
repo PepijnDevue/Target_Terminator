@@ -65,10 +65,8 @@ class HumanRenderingEnv(BaseEnv):
         # sprite data is not mandatory in config, 
         # so we check these here
         assert "sprite" in self._plane_data and \
-            "side_view_dir" in self._plane_data["sprite"] and \
-            "top_view_dir" in self._plane_data["sprite"], \
-            "Either `sprite`, `sprite : side_view_dir`, or `sprite : "\
-            "top_view_dir` are not present in plane data."
+            "side_view_dir" in self._plane_data["sprite"], \
+            "`sprite : side_view_dir` is not present in plane data."
         for target_key in self._target_data.keys():
             assert "sprite" in self._target_data[target_key], \
             f"`sprite` key not in target data['target_key']"
