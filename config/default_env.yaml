@@ -7,4 +7,4 @@
 
 window_dimensions : [1280, 720]
 background:
-    sprite : "assets/background.png"
+    sprite : "assets/background_C_Lelant.png"
