@@ -19,19 +19,15 @@ Place this directory in your current project. The folder structure should look s
     │
     ├─ your_code_files.py
     ```
-2. New Conda environment.\
-    Make a new Conda environment in any terminal using:
+2. Conda environment.\
+    Build the Conda environment with the correct packages in any terminal using:
     ```shell
-    conda create -n "AS_TT" python=3.11.9
+    conda env create -f environment.yml
     ```
     What exactly you name this environment does not matter.
 3. Activate conda environment with:
     ```shell
     conda activate AS_TT
-    ```
-4. Install the requirements using:
-    ```shell
-    pip install -r Target_Terminator/requirements.txt
     ```
 
 ## Hello world!
