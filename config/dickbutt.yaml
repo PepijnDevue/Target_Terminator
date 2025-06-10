@@ -7,7 +7,7 @@
 
 sprite:
     side_view_dir : "assets/dickbutt.png"
-    size : [36, 18] # in pixels
+    size : [90, 45] # in pixels
 properties:
     # scalars
     mass : 1200
