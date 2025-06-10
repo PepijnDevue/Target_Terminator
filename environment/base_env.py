@@ -1,24 +1,24 @@
-import datetime
+import datetime  # noqa: D100
 import json
-import numpy as np
 import os
+
+import numpy as np
 import yaml
-from jsonschema import validate, ValidationError
+from jsonschema import ValidationError, validate
 
 import config.validation_templates as templates
 from simulation.entities import Entities
-from utils.numpy_encoder import NumpyEncoder
 from utils.create_path_plots import create_path_plots
-
+from utils.numpy_encoder import NumpyEncoder
 
 # Define the maximum number of entities that can spawn at the same time.
 # Dead bullet entities will not count towards the maximum. Meaning the
 # chances of going beyond this limit are very slim.
-# !!! CAUTION !!!: 
+# !!! CAUTION !!!:
 #   Increasing this number may have significant impact on runtime!
 MAX_ENTITIES = 1000
 
-class BaseEnv():
+class BaseEnv:
     """
     Base environment class.
 
@@ -31,44 +31,42 @@ class BaseEnv():
     @public methods:
     + step(action: int)-> np.ndarray
         Takes a step in the environment. This means that the plane
-        will be updated based on the action taken and that the 
+        will be updated based on the action taken and that the
         environment will react accordingly.
     + reset(seed: int=None)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
     + close(
-        save_json: bool=False, 
-        save_figs: bool=False, 
+        save_json: bool=False,
+        save_figs: bool=False,
         figs_stride: int=1
       )-> None
         Closes the environment and thereby outputs its entire history.
     """
     
     def __init__(
-        self, 
+        self,
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
         target_config: str="config/default_target.yaml",
-        seed: int=None
+        seed: int|None = None,
     )-> None:
         """
-        Initializer for BaseEnv class.
+        Initialize the BaseEnv class.
 
         @params:
-            - plane_config (str): Path to yaml file with plane 
+            - plane_config (str): Path to yaml file with plane
             configuration. See config/i-16_falangist.yaml for more info.
-            - env_config (str): Path to yaml file with environment 
+            - env_config (str): Path to yaml file with environment
             configuration. See config/default_env.yaml for more info.
-            - target_config (str): Path to yaml file with target 
-            configuration. See config/default_target.yaml for more 
+            - target_config (str): Path to yaml file with target
+            configuration. See config/default_target.yaml for more
             info.
             - seed (int): Seed for randomizer. If None, no seed is used.
         """
-        if seed != None:
-            # global seeds is used to randomise the target spawning
-            np.random.seed(seed)
-        # this seed is used to randomise the plane spawning
-        self._rng = np.random.default_rng(seed)
+        # Initialize random number generators
+        self._target_rng = np.random.default_rng(seed)
+        self._plane_rng = np.random.default_rng(seed)
 
         # for saving the observation history, used in self.close()
         self._current_iteration = 0
@@ -78,31 +76,31 @@ class BaseEnv():
         self._dt = 1 / 60
         
         # validate all of the provided config files
-        with open(plane_config, 'r') as stream:
+        with open(plane_config, "r") as stream:
             self._plane_data = yaml.safe_load(stream)
         try:
             validate(self._plane_data, templates.PLANE_TEMPLATE)
         except ValidationError as e:
-            print(
-                f"A validation error occurred in the plane data: {e.message}"
+            print(  # noqa: T201
+                f"A validation error occurred in the plane data: {e.message}",
             )
 
-        with open(env_config, 'r') as stream:
+        with open(env_config, "r") as stream:
             self._env_data = yaml.safe_load(stream)
         try:
             validate(self._env_data, templates.ENVIRONMENT_TEMPLATE)
         except ValidationError as e:
-            print(
-                f"A validation error occurred in the env data: {e.message}"
+            print(  # noqa: T201
+                f"A validation error occurred in the env data: {e.message}",
             )
 
-        with open(target_config, 'r') as stream:
+        with open(target_config, "r") as stream:
             self._target_data = yaml.safe_load(stream)
         try:
             validate(self._target_data, templates.TARGET_TEMPLATE)
         except ValidationError as e:
-            print(
-                f"A validation error occurred in the target data: {e.message}"
+            print(  # noqa: T201
+                f"A validation error occurred in the target data: {e.message}",
             )
 
         # reserve memory for necessary member objects
@@ -112,10 +110,10 @@ class BaseEnv():
 
     def _create_entities(self)-> None:
         """
-        Creates plane and target entities.
+        Create plane and target entities.
 
         Uses self._create_agent() and self._create_target() to do this.
-        Combines scalars of these two objects into two big matrices, 
+        Combines scalars of these two objects into two big matrices,
         which it uses to create an Entities object.
         """
         agent_scalars, agent_vectors = self._create_agent()
@@ -130,16 +128,16 @@ class BaseEnv():
         boundaries = np.array(
             [
                 [0,  window_dimensions[0]],
-                [0,  window_dimensions[1]]
-            ]
+                [0,  window_dimensions[1]],
+            ],
         )
 
         self._entities = Entities(
-            scalars=scalars, 
-            vectors=vectors, 
-            n_entities=MAX_ENTITIES, 
+            scalars=scalars,
+            vectors=vectors,
+            n_entities=MAX_ENTITIES,
             boundaries=boundaries,
-            plane_data=self._plane_data
+            plane_data=self._plane_data,
         )
 
     def _create_agent(self)-> tuple[np.ndarray, np.ndarray]:
@@ -151,14 +149,13 @@ class BaseEnv():
         @returns:
             - tuple with numpy arrays containing scalars and vectors
         """
-
         scalars = np.array(list(self._plane_data["properties"].values())[:10])
         # randomise spawn pitch based on config
         if self._plane_data["properties"]["max_spawn_pitch_deviation"] > 0:
-            pitch_deviation = self._rng.integers(
+            pitch_deviation = self._plane_rng.integers(
                 low=-self._plane_data["properties"][
                     "max_spawn_pitch_deviation"
-                ], 
+                ],
                 high=self._plane_data["properties"][
                     "max_spawn_pitch_deviation"
                 ],
@@ -169,28 +166,28 @@ class BaseEnv():
         scalars = np.concatenate((scalars, np.array([0, 0, -1, 0])))
 
         vectors = np.array(
-            list(self._plane_data["properties"].values())[10:14]
+            list(self._plane_data["properties"].values())[10:14],
         )
         # randomise spawn locations based on config
         if self._plane_data["properties"]["max_spawn_position_deviation"] > 0:
-            vectors[3] += self._rng.integers(
+            vectors[3] += self._plane_rng.integers(
                 low=-self._plane_data["properties"][
                     "max_spawn_position_deviation"
-                ], 
+                ],
                 high=self._plane_data["properties"][
                     "max_spawn_position_deviation"
                 ],
-                size=2
+                size=2,
             )
         # update the velocity based on the new pitch
         if self._plane_data["properties"]["max_spawn_pitch_deviation"] > 0:
             pitch_angle_rad = np.radians(pitch_deviation)
             vectors[2] = np.linalg.norm(vectors[2]) * np.array([
                 np.cos(pitch_angle_rad),
-                np.sin(pitch_angle_rad)
+                np.sin(pitch_angle_rad),
             ])
         # the extra data is
-        # [v_uv, f_gravity, f_engine, f_drag, f_lift, pitch_uv]
+        # v_uv, f_gravity, f_engine, f_drag, f_lift, pitch_uv
         vectors = np.concatenate((vectors, np.zeros(shape=(6,2), dtype=float)))
 
         return scalars, vectors
@@ -204,7 +201,7 @@ class BaseEnv():
         @returns:
             - tuple with numpy arrays containing scalars and vectors
         """
-        # each key in the target data is equal to a new target, 
+        # each key in the target data is equal to a new target,
         # the validation template guarantees this
         n_targets = len(self._target_data)
         scalars = np.zeros(shape=(n_targets, 14))
@@ -225,14 +222,14 @@ class BaseEnv():
             if self._target_data[target_key][
                 "max_spawn_position_deviation"
             ] > 0:
-                vectors[i, 3] += np.random.randint(
+                vectors[i, 3] += self._target_rng.integers(
                     low=-self._target_data[target_key][
                         "max_spawn_position_deviation"
-                    ], 
+                    ],
                     high=self._target_data[target_key][
                         "max_spawn_position_deviation"
                     ],
-                    size=2
+                    size=2,
                 )
         return scalars, vectors
 
@@ -240,8 +237,8 @@ class BaseEnv():
         """
         Reward function for environment.
 
-        Reward is equal to the difference between the unit vector from 
-        the plane to the target and the unit vector for the plane's 
+        Reward is equal to the difference between the unit vector from
+        the plane to the target and the unit vector for the plane's
         velocity will be subtracted. This difference is a value between
         zero and two. It will be multiplied by -100 to make the reward
         fall between -200 and 0. This result will then be multiplied by
@@ -251,7 +248,7 @@ class BaseEnv():
         NOTE: function does not check for validity of state parameter
 
         @params:
-            - state (np.ndarray): 
+            - state (np.ndarray):
             state contains:
                 * x (float): x position of plane
                 * y (float): y position of plane
@@ -266,18 +263,18 @@ class BaseEnv():
         closest_target_distance = float("inf")
         i_closest_target = None
         for i, (target_scalars, target_vectors) in enumerate(
-            zip(self._entities.targets.scalars, self._entities.targets.vectors)
+            zip(self._entities.targets.scalars, self._entities.targets.vectors),
         ):
             if target_scalars[12] == -1:
-                distance = np.linalg.norm(target_vectors[3] - state[:2]) 
+                distance = np.linalg.norm(target_vectors[3] - state[:2])
                 if distance < closest_target_distance:
                     closest_target_distance = distance
                     i_closest_target = i
 
-        if i_closest_target != None:
+        if i_closest_target is not None:
             direction_to_target = self._entities.targets.vectors[
-                i_closest_target, 
-                3
+                i_closest_target,
+                3,
             ] - state[:2]
                 
             unit_vector_to_target = direction_to_target / \
@@ -287,12 +284,11 @@ class BaseEnv():
             unit_vector_agent = velocity / np.linalg.norm(velocity)
 
             return -100 * np.linalg.norm(
-                unit_vector_agent - unit_vector_to_target
+                unit_vector_agent - unit_vector_to_target,
             ) * state[4]
-        # for the last state, if agent succeeded we dont need to 
+        # for the last state, if agent succeeded we dont need to
         # calculate any distance, reward should be zero
-        else:
-            return 0
+        return 0
     
     def _check_if_terminated(self)-> bool:
         """
@@ -319,7 +315,7 @@ class BaseEnv():
         return np.all(self._entities.airplanes.scalars[:, 12] != -1)
 
     def _calculate_observation(
-            self
+            self,
         )-> tuple[np.ndarray, float, bool, bool, dict]:
         """
         Calculate observation of current conditions.
@@ -332,11 +328,11 @@ class BaseEnv():
                 * velocity_y (float): velocity of plane in y direction
                 * n_targets (int): number of targets remaining
             - reward (see self._calculate_reward())
-                terminal states are rewarded a bonus, 
+                terminal states are rewarded a bonus,
                 whilst truncated states are punished.
             - is_terminal (see self._check_if_terminal)
             - is_truncated (see self._check_if_truncated)
-            - info, made for compatibility with Gym environment, 
+            - info, made for compatibility with Gym environment,
             but is always empty.
 
         @returns:
@@ -350,8 +346,8 @@ class BaseEnv():
         v = self._entities.airplanes.vectors[0, 2]
         n_remaining_targets = np.count_nonzero(self._entities.targets.scalars[:, 12] == -1)
         state = np.concatenate(
-            (pos, v, np.array(n_remaining_targets)), 
-            axis=None
+            (pos, v, np.array(n_remaining_targets)),
+            axis=None,
         )
         
         is_terminated = self._check_if_terminated()
@@ -367,15 +363,12 @@ class BaseEnv():
 
     def _render(self)-> None:
         """
-        Render function for all of the graphical elements of the 
-        environment.
+        Render function for all of the graphical elements of the environment.
 
         Since the base class does not have any gui elements, this method
         is not implemented here.
         """
-        raise NotImplementedError(
-            "As this class has no gui, this is not implemented."
-        )
+        raise NotImplementedError("As this class has no gui, this is not implemented.")
 
     def step(self, action: int)-> np.ndarray:
         """
@@ -384,7 +377,7 @@ class BaseEnv():
         Performs action on agent.
         If the action is shooting, the environment will calculate if the
         bullet will end up hitting the target. If this is the case, the
-        reward will be altered with a bonus of 50. If it misses, there 
+        reward will be altered with a bonus of 50. If it misses, there
         will be a punishment of -5 reward.
 
         @params:
@@ -425,26 +418,26 @@ class BaseEnv():
 
             # get all alive targets
             target_indices = np.where(
-                (self._entities.targets.scalars[:, 12] == -1) & 
-                (self._entities.targets.scalars[:, 13] == 0)
+                (self._entities.targets.scalars[:, 12] == -1) &
+                (self._entities.targets.scalars[:, 13] == 0),
             )[0]
             target_positions = self._entities.targets.vectors[
-                target_indices, 
-                3
+                target_indices,
+                3,
             ]
-            target_radii = self._entities.targets.scalars[target_indices, 9] 
+            target_radii = self._entities.targets.scalars[target_indices, 9]
 
             # for each target, see if bullet will hit.
             for i, (target_pos, target_rad) in enumerate(
-                zip(target_positions, target_radii)
+                zip(target_positions, target_radii),
             ):
                 # effective radius also takes bullet radius into acount
                 effective_radius = bullet_scalars[9] + target_rad
 
                 bullet_start_to_target = target_pos - bullet_vectors[3]
                 projection_length = np.dot(
-                    bullet_start_to_target, 
-                    norm_direction_vector_bullet
+                    bullet_start_to_target,
+                    norm_direction_vector_bullet,
                 )
                 # closest point on the trajectory
                 closest_point = bullet_vectors[3] + \
@@ -452,7 +445,7 @@ class BaseEnv():
                     np.clip(projection_length, 0, bullet_line_length)
                 distance_to_center = np.linalg.norm(target_pos- closest_point)
 
-                # if bullet will hit, set debug of target and return 
+                # if bullet will hit, set debug of target and return
                 # positively altered reward
                 if distance_to_center <= effective_radius:
                     self._entities.targets.scalars[i, 13] = 1
@@ -464,7 +457,7 @@ class BaseEnv():
         # if no bullets are shot, return observation as is
         return observation
 
-    def reset(self, seed: int=None)-> tuple[np.ndarray, dict]:
+    def reset(self, seed: int|None = None)-> tuple[np.ndarray, dict]:
         """
         Reset environment.
 
@@ -477,41 +470,42 @@ class BaseEnv():
             no seed is used.
         
         @returns:
-            - np.ndarray with initial state 
+            - np.ndarray with initial state
             (see self._calculate_observation())
-            - dict with info, made for compatibility with Gym 
+            - dict with info, made for compatibility with Gym
             environment, but is always empty.
         """
-        if seed != None:
-            np.random.seed(seed)
+        if seed is not None:
+            self._plane_rng = np.random.default_rng(seed)
+            self._target_rng = np.random.default_rng(seed)
         self._create_entities()
 
         self._current_iteration += 1
         self._observation_history[self._current_iteration] = []
 
-        # the agent's current coordinates are defined by the centre of 
+        # the agent's current coordinates are defined by the centre of
         # its rect
         pos = self._entities.airplanes.vectors[0, 3]
         v = self._entities.airplanes.vectors[0, 2]
         n_remaining_targets = len(self._entities.targets.scalars) - \
             np.sum(self._entities.targets.scalars[:, 12])
         return np.concatenate(
-            (pos, v, np.array(n_remaining_targets)), axis=None
+            (pos, v, np.array(n_remaining_targets)), axis=None,
         ), {}
 
     def close(
-        self, 
-        save_json: bool=False, 
-        save_figs: bool=False, 
-        figs_stride: int=1
+        self,
+        save_json: bool=False,
+        save_figs: bool=False,
+        figs_stride: int=1,
     )-> None:
         """
         Close environment and output history.
 
-        Will create a folder indicated by the current date and time, 
+        Will create a folder indicated by the current date and time,
         provided save == True in which resides:
             - a json file with the entire observation history.
-            - an image per iteration, which displays the flown path of 
+            - an image per iteration, which displays the flown path of
             the agent, along with the reward (indicated by the colour).
         
         @params:
@@ -521,22 +515,21 @@ class BaseEnv():
         """
         # prepare the output folder
         if save_json or save_figs:
-            folder_path = "output/" \
-            f"{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+            folder_path = f"output/{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
             os.mkdir(folder_path)
 
         # write all the observations to a json file
         if save_json:
             with open(
-                f"{folder_path}/_observation_history.json", "w"
-            ) as outfile: 
+                f"{folder_path}/_observation_history.json", "w",
+            ) as outfile:
                 json.dump(self._observation_history, outfile, cls=NumpyEncoder)
 
         # create all the graphs and save them to the `folder_path`
         if save_figs:
             create_path_plots(
-                folder_path, 
-                self._observation_history, 
+                folder_path,
+                self._observation_history,
                 self._env_data,
-                figs_stride
+                figs_stride,
             )

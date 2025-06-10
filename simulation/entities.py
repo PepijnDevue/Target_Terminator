@@ -1,22 +1,29 @@
+"""
+Module containing the Entities class.
+
+The Entities class serves as a container for all simulation entities.
+It manages airplanes, bullets, targets, and their interactions within the simulation environment.
+"""
+
 import numpy as np
 
 from simulation.airplanes import Airplanes
-from simulation.targets import Targets
 from simulation.bullets import Bullets
+from simulation.targets import Targets
 
 
 class Entities:
     """
     Entities container class.
 
-    This class contains all the entities needed for a simulation. It 
+    This class contains all the entities needed for a simulation. It
     also contains some of the math required to make them act.
 
     @public member variables:
     + scalars (np.ndarray): numpy matrix with the following columns:
         0  - mass
         1  - const_drag
-        2  - const_lift, alt scalar container 1    
+        2  - const_lift, alt scalar container 1
         3  - cl0
         4  - cd_min
         5  - engine_force
@@ -24,11 +31,11 @@ class Entities:
         7  - throttle
         8  - pitch
         9  - coll radius
-        10 - AoA_deg 
+        10 - AoA_deg
         11 - entity type flag:
-            -1 = nothing, 
-            0 = plane, 
-            1 = target, 
+            -1 = nothing,
+            0 = plane,
+            1 = target,
             2 = bullet
             3 = environment
         12 - collision flag: -1 = alive, 1 if not
@@ -37,7 +44,7 @@ class Entities:
         0 - AoA_crit_low
         1 - AoA_crit_high
         2 - v
-        3 - pos 
+        3 - pos
         4 - v_uv
         5 - f_gravity
         6 - f_engine
@@ -62,25 +69,25 @@ class Entities:
     """
 
     def __init__(
-        self, 
-        scalars: np.ndarray, 
-        vectors: np.ndarray, 
-        n_entities: int, 
-        boundaries: np.ndarray, 
-        plane_data: dict
-    ):
+        self,
+        scalars: np.ndarray,
+        vectors: np.ndarray,
+        n_entities: int,
+        boundaries: np.ndarray,
+        plane_data: dict,
+    ) -> None:
         """
-        Initializer for Entities class.
+        Initialize the Entities class.
 
-        Sets self.scalars and self.vectors and sets all simulation 
+        Set self.scalars and self.vectors and set all simulation
         objects.
 
         @oarams:
-            - scalars (np.ndarray): 
+            - scalars (np.ndarray):
             numpy matrix with the following columns:
             0  - mass
             1  - const_drag
-            2  - const_lift, alt scalar container 1    
+            2  - const_lift, alt scalar container 1
             3  - cl0
             4  - cd_min
             5  - engine_force
@@ -88,32 +95,32 @@ class Entities:
             7  - throttle
             8  - pitch
             9  - coll radius
-            10 - AoA_deg 
+            10 - AoA_deg
             11 - entity type flag:
-                -1 = nothing, 
-                0 = plane, 
-                1 = target, 
+                -1 = nothing,
+                0 = plane,
+                1 = target,
                 2 = bullet
                 3 = environment
             12 - collision flag: -1 = alive, 1 if not
             13 - debug
-            - vectors (np.ndarray): 
+            - vectors (np.ndarray):
             numpy matrix with the following columns:
             0 - AoA_crit_low
             1 - AoA_crit_high
             2 - v
-            3 - pos 
+            3 - pos
             4 - v_uv
             5 - f_gravity
             6 - f_engine
             7 - f_drag
             8 - f_lift
             9 - pitch_uv
-            - n_entities (int): Total number of entities present in 
-            simulation at start. 
-            - boundaries (np.ndarray): Simulation boundaries with 
+            - n_entities (int): Total number of entities present in
+            simulation at start.
+            - boundaries (np.ndarray): Simulation boundaries with
             shape[[domain_x],[domain_y]], e.g. [[0,1280],[0,720]].
-            - plane_data (dict): See plane yamls in config/ for more 
+            - plane_data (dict): See plane yamls in config/ for more
             information.
         """
         self.scalars = np.zeros((n_entities, scalars.shape[1]))
@@ -125,7 +132,7 @@ class Entities:
         self.vectors[:vectors.shape[0]] = vectors
 
         # has shape[[domain_x],[domain_y]], e.g. [[0,1280],[0,720]]
-        self._boundaries = boundaries  
+        self._boundaries = boundaries
 
         self.n_planes = np.sum(scalars[:,11]==0)
         self.n_targets = np.sum(scalars[:,11]==1)
@@ -134,19 +141,19 @@ class Entities:
 
         self.airplanes = Airplanes(
             self.scalars[:self.n_planes],
-            self.vectors[:self.n_planes]
+            self.vectors[:self.n_planes],
         )
         self.targets = Targets(
             self.scalars[self.n_planes:self.n_planes+self.n_targets],
-            self.vectors[self.n_planes:self.n_planes+self.n_targets]
+            self.vectors[self.n_planes:self.n_planes+self.n_targets],
         )
         self.bullets = Bullets(
             self.scalars[self.n_planes + self.n_targets:],
             self.vectors[self.n_planes + self.n_targets:],
-            plane_data
+            plane_data,
         )
         # this is the bullet velocity relative to the plane, in m/s
-        self._BULLET_SPEED_SCALER = plane_data["bullet_config"]["speed"] 
+        self._BULLET_SPEED_SCALER = plane_data["bullet_config"]["speed"]
         self._BULLET_COLL_RADIUS = plane_data["bullet_config"]["coll_radius"]
 
     def tick(self, dt: float, actions: np.ndarray)-> None:
@@ -185,9 +192,9 @@ class Entities:
         # bounding box of the plane and the radius of the bullet, as to
         # prevent the plane from shooting itself
         pos = self.vectors[id, 3] + self.vectors[id, 4] * \
-            (self.scalars[id, 9][:, None] + self._BULLET_COLL_RADIUS + 2)  
+            (self.scalars[id, 9][:, None] + self._BULLET_COLL_RADIUS + 2)
         v = self.vectors[id, 2] + \
-            (self._BULLET_SPEED_SCALER * self.vectors[id, 4]) 
+            (self._BULLET_SPEED_SCALER * self.vectors[id, 4])
         vectors = np.zeros((id.shape[0], self.vectors.shape[1], 2))
         vectors[:, 3] = pos
         vectors[:, 2] = v
@@ -199,7 +206,7 @@ class Entities:
         """
         Check for, and resolve, entity collisions.
 
-        If any object collides with another, the source ID is saved in 
+        If any object collides with another, the source ID is saved in
         the destination and the destination object is killed. Since
         the map boundaries are not objects, they will not be killed.
         Instead the source object gets killed.

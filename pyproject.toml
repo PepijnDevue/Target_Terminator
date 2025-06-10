@@ -1,0 +1,20 @@
+[project]
+name = "target-terminator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "ipykernel>=6.29.5",
+    "jsonschema>=4.24.0",
+    "matplotlib>=3.10.3",
+    "numpy>=2.3.0",
+    "pygame>=2.6.1",
+    "pyyaml>=6.0.2",
+    "scikit-learn>=1.7.0",
+]
+
+[tool.ruff]
+select = ["ALL"]
+ignore = ["D212", "W293", "D200", "D204", "D413", "TD002", "TD003", "S311", "S605", "FBT001", "FBT002", "PLR0913", "N999", "EM101", "TRY003", "EM102"]
+line-length = 100

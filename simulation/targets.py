@@ -1,3 +1,8 @@
+"""
+Targets module.
+
+This module defines the Targets class which represents targetable entities in the simulation.
+"""
 import numpy as np
 
 
@@ -5,7 +10,7 @@ class Targets:
     """
     Targets container class.
 
-    This class contains all the targets needed for a simulation. It 
+    This class contains all the targets needed for a simulation. It
     also contains all the math required to make them act, currently that
     amounts to nothing.
 
@@ -13,7 +18,7 @@ class Targets:
     + scalars (np.ndarray): numpy matrix with the following columns:
         0  - mass
         1  - const_drag
-        2  - const_lift, alt scalar container 1    
+        2  - const_lift, alt scalar container 1
         3  - cl0
         4  - cd_min
         5  - engine_force
@@ -21,11 +26,11 @@ class Targets:
         7  - throttle
         8  - pitch
         9  - coll radius
-        10 - AoA_deg 
+        10 - AoA_deg
         11 - entity type flag:
-            -1 = nothing, 
-            0 = plane, 
-            1 = target, 
+            -1 = nothing,
+            0 = plane,
+            1 = target,
             2 = bullet
             3 = environment
         12 - collision flag: -1 = alive, 1 if not
@@ -34,7 +39,7 @@ class Targets:
         0 - AoA_crit_low
         1 - AoA_crit_high
         2 - v
-        3 - pos 
+        3 - pos
         4 - v_uv
         5 - f_gravity
         6 - f_engine
@@ -49,16 +54,16 @@ class Targets:
 
     def __init__(self, scalars: np.ndarray, vectors: np.ndarray)-> None:
         """
-        Initializer for Bullets class.
+        Initialize Targets class.
 
-        Sets self.scalars and self.vectors and sets self.n_bullets to 0.
+        Sets self.scalars and self.vectors.
 
-        @oarams:
-            - scalars (np.ndarray): 
+        @params:
+            - scalars (np.ndarray):
             numpy matrix with the following columns:
             0  - mass
             1  - const_drag
-            2  - const_lift, alt scalar container 1    
+            2  - const_lift, alt scalar container 1
             3  - cl0
             4  - cd_min
             5  - engine_force
@@ -66,21 +71,21 @@ class Targets:
             7  - throttle
             8  - pitch
             9  - coll radius
-            10 - AoA_deg 
+            10 - AoA_deg
             11 - entity type flag:
-                -1 = nothing, 
-                0 = plane, 
-                1 = target, 
+                -1 = nothing,
+                0 = plane,
+                1 = target,
                 2 = bullet
                 3 = environment
             12 - collision flag: -1 = alive, 1 if not
             13 - debug
-            - vectors (np.ndarray): 
+            - vectors (np.ndarray):
             numpy matrix with the following columns:
             0 - AoA_crit_low
             1 - AoA_crit_high
             2 - v
-            3 - pos 
+            3 - pos
             4 - v_uv
             5 - f_gravity
             6 - f_engine
@@ -95,7 +100,6 @@ class Targets:
         """
         Tick function for targets.
         
-        Currently targets have no actions to perform, so the function 
+        Currently targets have no actions to perform, so the function
         does nothing.
         """
-        pass

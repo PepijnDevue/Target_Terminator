@@ -1,5 +1,13 @@
-import numpy as np
+"""
+Human Rendering Environment module for Target Terminator.
+
+This module provides a pygame-based graphical interface for the simulation environment,
+allowing for real-time visualization of the plane, targets, and bullets.
+"""
+
 import os
+
+import numpy as np
 import pygame
 
 from environment.base_env import BaseEnv
@@ -18,14 +26,14 @@ class HumanRenderingEnv(BaseEnv):
     @public methods:
     + step(action: int)-> np.ndarray
         Takes a step in the environment. This means that the plane
-        will be updated based on the action taken and that the 
+        will be updated based on the action taken and that the
         environment will react accordingly.
     + reset(seed: int=None)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
     + close(
-        save_json: bool=False, 
-        save_figs: bool=False, 
+        save_json: bool=False,
+        save_figs: bool=False,
         figs_stride: int=1
       )-> None
         Closes the environment and thereby outputs its entire history.
@@ -36,48 +44,51 @@ class HumanRenderingEnv(BaseEnv):
         plane_config: str="config/i-16_falangist.yaml",
         env_config: str="config/default_env.yaml",
         target_config: str="config/default_target.yaml",
-        seed: int=None
+        seed: int|None = None,
     )-> None:
         """
-        Initializer for HumanRenderingEnv class.
+        Initialize HumanRenderingEnv class.
 
         @params:
-            - plane_config (str): Path to yaml file with plane 
+            - plane_config (str): Path to yaml file with plane
             configuration. See config/i-16_falangist.yaml for more info.
-            - env_config (str): Path to yaml file with environment 
+            - env_config (str): Path to yaml file with environment
             configuration. See config/default_env.yaml for more info.
-            - target_config (str): Path to yaml file with target 
-            configuration. See config/default_target.yaml for more 
+            - target_config (str): Path to yaml file with target
+            configuration. See config/default_target.yaml for more
             info.
             - seed (int): seed for randomizer. If None, no seed is used.
         """
         # place pygame window in top left of monitor(s)
-        os.environ['SDL_VIDEO_WINDOW_POS'] = f"{0},{0}"
+        os.environ["SDL_VIDEO_WINDOW_POS"] = f"{0},{0}"
         pygame.init()
             
         super().__init__(
             plane_config=plane_config,
             env_config=env_config,
             target_config=target_config,
-            seed=seed
+            seed=seed,
         )
 
-        # sprite data is not mandatory in config, 
+        # sprite data is not mandatory in config,
         # so we check these here
-        assert "sprite" in self._plane_data and \
-            "side_view_dir" in self._plane_data["sprite"], \
-            "`sprite : side_view_dir` is not present in plane data."
-        for target_key in self._target_data.keys():
-            assert "sprite" in self._target_data[target_key], \
-            f"`sprite` key not in target data['target_key']"
-        assert "sprite" in self._env_data["background"], \
-            "`sprite` key is not in background field in target data"
+        if "sprite" not in self._plane_data:
+            raise ValueError("`sprite` key not in plane data.")
+        if "side_view_dir" not in self._plane_data["sprite"]:
+            raise ValueError("`side_view_dir` key not in plane data['sprite'].")
+        
+        for target_key in self._target_data:
+            if "sprite" not in self._target_data[target_key]:
+                raise ValueError(f"`sprite` key not in target data['{target_key}']")
+        
+        if "sprite" not in self._env_data["background"]:
+            raise ValueError("`sprite` key is not in background field in target data")
         
         self.screen = pygame.display.set_mode(
-            self._env_data["window_dimensions"]
+            self._env_data["window_dimensions"],
         )
         
-        pygame.display.set_caption('Target terminator')
+        pygame.display.set_caption("Target terminator")
 
         self._create_sprites()
 
@@ -88,32 +99,33 @@ class HumanRenderingEnv(BaseEnv):
         Use environment data to create background object.
         """
         self._background_sprite = pygame.image.load(
-            self._env_data["background"]["sprite"]
+            self._env_data["background"]["sprite"],
         )
         self._background_sprite = pygame.transform.scale(
             self._background_sprite,
-            pygame.display.get_surface().get_size()
+            pygame.display.get_surface().get_size(),
         )
 
         self._target_sprites = [pygame.transform.scale(
-            pygame.image.load(self._target_data[target_key]["sprite"]), 
-            self._target_data[target_key]["size"]
-        ) for target_key in self._target_data.keys()]
+            pygame.image.load(self._target_data[target_key]["sprite"]),
+            self._target_data[target_key]["size"],
+        ) for target_key in self._target_data]
 
         self._bullet_sprite = pygame.transform.scale(
             pygame.image.load(self._plane_data["bullet_config"]["sprite"]),
-            self._plane_data["bullet_config"]["size"]
+            self._plane_data["bullet_config"]["size"],
         )
 
         self._plane_sprite = pygame.transform.scale(
             pygame.image.load(self._plane_data["sprite"]["side_view_dir"]),
-            self._plane_data["sprite"]["size"]
+            self._plane_data["sprite"]["size"],
         )
 
     def _render(self) -> None:
         """
-        Render function for all of the graphical elements of the 
-        environment.
+        Render function for all of the graphical elements of the environment.
+
+        This function draws the background, targets, bullets, and planes to the screen.
         """
         # gather all rotation instructions for bullets and save to tuple
         alive_bullets = self._entities.bullets.vectors[(
@@ -123,18 +135,18 @@ class HumanRenderingEnv(BaseEnv):
 
         rotate_instructions = (
             np.degrees(
-                np.arctan2(alive_bullets[:, 2, 0], alive_bullets[:, 2, 1])
+                np.arctan2(alive_bullets[:, 2, 0], alive_bullets[:, 2, 1]),
             ) + 270
         ) % 360
 
         blit_data_bullets = []
         for bullet_vectors, rotate_instruction in zip(
-            alive_bullets, 
-            rotate_instructions
+            alive_bullets,
+            rotate_instructions,
         ):
             rotated_sprite = pygame.transform.rotate(
                 self._bullet_sprite,
-                rotate_instruction
+                rotate_instruction,
             )
             # use coordinates as center for sprite
             bullet_rect = rotated_sprite.get_rect()
@@ -152,12 +164,12 @@ class HumanRenderingEnv(BaseEnv):
 
         blit_data_planes = []
         for airplane_vectors, rotate_instruction in zip(
-            alive_airplanes, 
-            rotate_instructions
+            alive_airplanes,
+            rotate_instructions,
         ):
             rotated_sprite = pygame.transform.rotate(
                 self._plane_sprite,
-                rotate_instruction
+                rotate_instruction,
             )
             # use coordinates as center for sprite
             plane_rect = rotated_sprite.get_rect()
@@ -177,7 +189,10 @@ class HumanRenderingEnv(BaseEnv):
             blit_sequence=[
                 # Background
                 (self._background_sprite, (0, 0)),
-            ] + blit_data_targets + blit_data_bullets + blit_data_planes
+                *blit_data_targets,
+                *blit_data_bullets,
+                *blit_data_planes,
+            ],
         )
         
         pygame.display.flip()
@@ -201,7 +216,6 @@ class HumanRenderingEnv(BaseEnv):
         @returns:
             - np.ndarray with observation of resulting conditions
         """
-
         # check if the game has bene quit, which case the game is closed
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -215,7 +229,7 @@ class HumanRenderingEnv(BaseEnv):
 
         return step_info
     
-    def reset(self, seed: int=None)-> tuple[np.ndarray, dict]:
+    def reset(self, seed: int | None=None)-> tuple[np.ndarray, dict]:
         """
         Reset environment.
 
@@ -224,13 +238,13 @@ class HumanRenderingEnv(BaseEnv):
         return initial state & info. Renders the initial frame
 
         @params:
-            - seed (int): seed used to spawn in the entities. If None, 
+            - seed (int): seed used to spawn in the entities. If None,
             no seed is used.
         
         @returns:
-            - np.ndarray with initial state 
+            - np.ndarray with initial state
             (see self._calculate_observation()).
-            - dict with info, made for compatibility with Gym 
+            - dict with info, made for compatibility with Gym
             environment, but is always empty.
         """
         output = super().reset(seed=seed)
@@ -241,9 +255,9 @@ class HumanRenderingEnv(BaseEnv):
 
     def close(
         self,
-        save_json: bool=False, 
-        save_figs: bool=False, 
-        figs_stride: int=1
+        save_json: bool=False,
+        save_figs: bool=False,
+        figs_stride: int=1,
     )-> None:
         """
         Close environment and output history.
@@ -251,7 +265,7 @@ class HumanRenderingEnv(BaseEnv):
         Will create a folder indicated by the current date and time
         in which resides:
             - a json file with the entire observation history.
-            - an image per iteration, which displays the flown path of 
+            - an image per iteration, which displays the flown path of
             the agent, along with the reward (indicated by the colour).
 
         @params:
@@ -262,7 +276,7 @@ class HumanRenderingEnv(BaseEnv):
         pygame.display.quit()
         pygame.quit()
         super().close(
-            save_json=save_json, 
+            save_json=save_json,
             save_figs=save_figs,
-            figs_stride=figs_stride
+            figs_stride=figs_stride,
         )

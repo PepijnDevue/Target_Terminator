@@ -1,28 +1,36 @@
-import numpy as np
-import matplotlib.pyplot as plt
+"""
+Utility module for creating path plots of agent trajectories.
+
+This module provides functionality to visualize the path taken by an agent,
+with color coding based on rewards received during the trajectory.
+"""
+
 import itertools
+
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.collections import LineCollection
 
 
 def create_path_plots(
-    folder_path: str, 
+    folder_path: str,
     observation_history: dict,
     env_data: dict,
-    figs_stride: int=1
+    figs_stride: int=1,
 )-> None:
     """
     Create plots that display the path of the agent.
 
-    It tries to draw background of the environment on the 
+    It tries to draw background of the environment on the
     figure. Above which it plots the x,y flight history of the agent.
-    It colours this graph in accordance with the normalized reward 
+    It colours this graph in accordance with the normalized reward
     provided. It saves the figure in the provided folder. It does this
     for each of the runs in the observation history.
 
     @params:
         - folder_path (str): Path to output folder.
         If this folder does not exist, no new one will be made.
-        - observation_history (dict): Dictionary containing list of 
+        - observation_history (dict): Dictionary containing list of
         observations per iteration/run.
         - env_data (dict): Environment configuration.
             See config/default_env.yaml for more info.
@@ -32,7 +40,7 @@ def create_path_plots(
     """
     obs_hist_iter = iter(observation_history.items())
     for iteration, observations in itertools.islice(
-        obs_hist_iter, 0, None, figs_stride
+        obs_hist_iter, 0, None, figs_stride,
     ):
         try:
             vertices = [
@@ -42,16 +50,16 @@ def create_path_plots(
             xs, ys, rewards = zip(*vertices)
             normalize_rewards = plt.Normalize(min(rewards), max(rewards))
 
-            colour_map = plt.get_cmap('RdYlGn')
+            colour_map = plt.get_cmap("RdYlGn")
 
             points = np.array([xs, ys]).T.reshape(-1, 1, 2)
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
             
             # Create a LineCollection from the segments
             lc = LineCollection(
-                segments, 
-                cmap=colour_map, 
-                norm=normalize_rewards
+                segments,
+                cmap=colour_map,
+                norm=normalize_rewards,
             )
             lc.set_array(np.array(rewards))
             
@@ -61,24 +69,23 @@ def create_path_plots(
             ax.set_ylim(0, env_data["window_dimensions"][1])
             ax.invert_yaxis()
             cbar = plt.colorbar(lc, ax=ax)
-            cbar.set_label('Reward')
+            cbar.set_label("Reward")
             ax.set_title(f"Flight path for iteration {iteration}.")
 
             # try to plot the backgrounds, if available
-            # if any of these settings are missing, 
+            # if any of these settings are missing,
             # nothing will be plotted
             try:
                 background_image = plt.imread(env_data["background"]["sprite"])
                 ax.imshow(background_image)
 
             except KeyError:
-                print(
-                    "\033[31mERROR OCCURRED DURING PLOTTING FIGURES: Unable to"
-                    " locate background image from environment data. Ignoring "
-                    "issue and attempting to make plots without background ima"
-                    "ge.\033[37m"
+                print(  # noqa: T201
+                    "\033[31mERROR OCCURRED DURING PLOTTING FIGURES: Unable to",
+                    " locate background image from environment data. Ignoring ",
+                    "issue and attempting to make plots without background ima",
+                    "ge.\033[37m",
                 )
-                pass
 
             plt.savefig(f"{folder_path}/flight_path_it-{iteration}")
             plt.close(fig)

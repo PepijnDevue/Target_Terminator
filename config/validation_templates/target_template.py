@@ -20,43 +20,43 @@ each time.
 """
 
 TARGET_TEMPLATE = {
-    'type': 'object',
-    'patternProperties': {
-        '^target\\d+$': {
-            'type': 'object',
-            'properties': {
-                'sprite' : {
-                    'type' : 'string'
+    "type": "object",
+    "patternProperties": {
+        "^target\\d+$": {
+            "type": "object",
+            "properties": {
+                "sprite" : {
+                    "type" : "string",
                 },
-                'size' : {
-                    'type' : 'array',
-                    'minlength' : 2, 
-                    'maxlength' : 2,
-                    'items' : {'type': 'integer', 'min' : 1}
+                "size" : {
+                    "type" : "array",
+                    "minlength" : 2,
+                    "maxlength" : 2,
+                    "items" : {"type": "integer", "min" : 1},
                 },
-                'position' : {
-                    'type' : 'array',
-                    'minlength' : 2, 
-                    'maxlength' : 2,
-                    'items' : {'type': 'integer', 'min' : 0}
+                "position" : {
+                    "type" : "array",
+                    "minlength" : 2,
+                    "maxlength" : 2,
+                    "items" : {"type": "integer", "min" : 0},
                 },
-                'max_spawn_position_deviation' : {
-                    'type' : 'number',
-                    'min' : 0
+                "max_spawn_position_deviation" : {
+                    "type" : "number",
+                    "min" : 0,
                 },
-                'coll_radius' : {
-                    'type' : 'number',
-                    'min' : 0
-                }
+                "coll_radius" : {
+                    "type" : "number",
+                    "min" : 0,
+                },
             },
-            'required' : [
-                'size', 
-                'position', 
-                'coll_radius', 
-                'max_spawn_position_deviation'
+            "required" : [
+                "size",
+                "position",
+                "coll_radius",
+                "max_spawn_position_deviation",
             ],
-            'additionalProperties' : False
-        }
+            "additionalProperties" : False,
+        },
     },
-    'additionalProperties' : False
+    "additionalProperties" : False,
 }

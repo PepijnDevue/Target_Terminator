@@ -9,8 +9,9 @@ TT.make()
 ```
 """
 
-import sys
+import contextlib
 import os
+import sys
 
 # set the system path correctly, so the assets and configurations will
 # be correctly selected
@@ -20,25 +21,23 @@ import os
 sys.path += ["", "Target_Terminator/", "Target_Terminator/assets/"]
 
 # if possible, set the directory of the os
-try:
-    os.chdir('Target_Terminator/')
-except:
-    pass
+with contextlib.suppress(Exception):
+    os.chdir("Target_Terminator/")
 
 from environment.base_env import BaseEnv
-from environment.human_rendering_env import HumanRenderingEnv
 from environment.human_control_env import HumanControlEnv
+from environment.human_rendering_env import HumanRenderingEnv
 
 
 def make(
-    render_mode: str=None, 
-    plane_config: str="config/i-16_falangist.yaml",
-    env_config: str="config/default_env.yaml",
-    target_config: str="config/default_target.yaml",
-    seed: int=None
+    render_mode: str|None = None,
+    plane_config: str = "config/i-16_falangist.yaml",
+    env_config: str = "config/default_env.yaml",
+    target_config: str = "config/default_target.yaml",
+    seed: int|None = None,
 ) -> BaseEnv:
     """
-    Make function for Target_Terminator
+    Make function for Target_Terminator.
 
     Makes one of:
         - Environment without gui.
@@ -49,12 +48,12 @@ def make(
     @params:
         - render_mode (str): Render mode, to make gui, keyboard gui, or
         neither.
-        - plane_config (str): Path to yaml file with plane 
+        - plane_config (str): Path to yaml file with plane
         configuration. See config/i-16_falangist.yaml for more info.
-        - env_config (str): Path to yaml file with environment 
+        - env_config (str): Path to yaml file with environment
         configuration. See config/default_env.yaml for more info.
-        - target_config (str): Path to yaml file with target 
-        configuration. See config/default_target.yaml for more 
+        - target_config (str): Path to yaml file with target
+        configuration. See config/default_target.yaml for more
         info.
         - seed (int): Seed for randomizer. If None, no seed is used.
 
@@ -65,17 +64,17 @@ def make(
     match render_mode:
         case "human":
             env = HumanRenderingEnv(
-                plane_config, 
-                env_config, 
-                target_config, 
-                seed
+                plane_config,
+                env_config,
+                target_config,
+                seed,
             )
         case "keyboard":
             env = HumanControlEnv(
-                plane_config, 
-                env_config, 
-                target_config, 
-                seed
+                plane_config,
+                env_config,
+                target_config,
+                seed,
             )
         # anything that is not "human" or "keyboard" gets interpreted
         # as no gui.

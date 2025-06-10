@@ -1,3 +1,10 @@
+"""
+Human Control Environment Module.
+
+This module provides the HumanControlEnv class that allows a human user
+to control the plane in the simulation using keyboard inputs.
+"""
+
 import numpy as np
 import pygame
 
@@ -10,7 +17,7 @@ class HumanControlEnv(HumanRenderingEnv):
 
     This class instantiates an entire environment, including a GUI.
     It creates the environment, plane, and target, as stated in the
-    provided config files. It allows the user to fly the plane using 
+    provided config files. It allows the user to fly the plane using
     their keyboard. This can be useful in debugging, and also quite fun.
 
     This class has no public member variables.
@@ -18,14 +25,14 @@ class HumanControlEnv(HumanRenderingEnv):
     @public methods:
     + step(action: int)-> np.ndarray
         Takes a step in the environment. This means that the plane
-        will be updated based on the action taken and that the 
+        will be updated based on the action taken and that the
         environment will react accordingly.
     + reset(seed: int=None)-> tuple[np.ndarray, dict]
         Resets the environment given a seed. This means that the plane
         and target will be reset to their spawn locations.
     + close(
-        save_json: bool=False, 
-        save_figs: bool=False, 
+        save_json: bool=False,
+        save_figs: bool=False,
         figs_stride: int=1
       )-> None
         Closes the environment and thereby outputs its entire history.
@@ -38,7 +45,7 @@ class HumanControlEnv(HumanRenderingEnv):
         This function checks for user input and passes it to the super.
 
         @params:
-            - action (int): action to take. 
+            - action (int): action to take.
             NOTE: Parameter is always ignored.
         
         @returns:
@@ -46,7 +53,7 @@ class HumanControlEnv(HumanRenderingEnv):
         """
         # provided action argument is ignored as this instance should
         # be controlled manually
-        action = 0 
+        action = 0
 
         keys = pygame.key.get_pressed()
         # up = pitch up

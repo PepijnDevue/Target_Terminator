@@ -1,3 +1,10 @@
+"""
+Bullets module for the Target Terminator simulation.
+
+This module contains the Bullets class which manages all bullet entities
+in the simulation, including their movement, spawning, and despawning logic.
+"""
+
 import numpy as np
 
 
@@ -5,14 +12,14 @@ class Bullets:
     """
     Bullets container class.
 
-    This class contains all the bullets needed for a simulation. It 
+    This class contains all the bullets needed for a simulation. It
     also contains all the math required to make them move.
 
     @public member variables:
     + scalars (np.ndarray): numpy matrix with the following columns:
         0  - mass
         1  - const_drag
-        2  - const_lift, alt scalar container 1    
+        2  - const_lift, alt scalar container 1
         3  - cl0
         4  - cd_min
         5  - engine_force
@@ -20,11 +27,11 @@ class Bullets:
         7  - throttle
         8  - pitch
         9  - coll radius
-        10 - AoA_deg 
+        10 - AoA_deg
         11 - entity type flag:
-            -1 = nothing, 
-            0 = plane, 
-            1 = target, 
+            -1 = nothing,
+            0 = plane,
+            1 = target,
             2 = bullet
             3 = environment
         12 - collision flag: -1 = alive, 1 if collision
@@ -33,7 +40,7 @@ class Bullets:
         0 - AoA_crit_low
         1 - AoA_crit_high
         2 - v
-        3 - pos 
+        3 - pos
         4 - v_uv
         5 - f_gravity
         6 - f_engine
@@ -52,22 +59,22 @@ class Bullets:
     """
 
     def __init__(
-            self, 
-            scalars: np.ndarray, 
-            vectors: np.ndarray, 
-            plane_data: dict
+            self,
+            scalars: np.ndarray,
+            vectors: np.ndarray,
+            plane_data: dict,
         )-> None:
         """
-        Initializer for Bullets class.
+        Initialize for Bullets class.
 
         Sets self.scalars and self.vectors and sets self.n_bullets to 0.
 
         @oarams:
-            - scalars (np.ndarray): 
+            - scalars (np.ndarray):
             numpy matrix with the following columns:
             0  - mass
             1  - const_drag
-            2  - const_lift, alt scalar container 1    
+            2  - const_lift, alt scalar container 1
             3  - cl0
             4  - cd_min
             5  - engine_force
@@ -75,21 +82,21 @@ class Bullets:
             7  - throttle
             8  - pitch
             9  - coll radius
-            10 - AoA_deg 
+            10 - AoA_deg
             11 - entity type flag:
-                -1 = nothing, 
-                0 = plane, 
-                1 = target, 
+                -1 = nothing,
+                0 = plane,
+                1 = target,
                 2 = bullet
                 3 = environment
             12 - collision flag: -1 = alive, 1 if collision
             13 - debug
-            - vectors (np.ndarray): 
+            - vectors (np.ndarray):
             numpy matrix with the following columns:
             0 - AoA_crit_low
             1 - AoA_crit_high
             2 - v
-            3 - pos 
+            3 - pos
             4 - v_uv
             5 - f_gravity
             6 - f_engine
@@ -119,7 +126,7 @@ class Bullets:
         """
         Spawn function for new bullets.
 
-        Adds all bullet vectors in the front of the matrix and sets 
+        Adds all bullet vectors in the front of the matrix and sets
         flags where needed.
 
         @params:
@@ -139,7 +146,7 @@ class Bullets:
         """
         Despawn function for bullets.
         
-        Checks and marks all bullets that are dead and subtracts them 
+        Checks and marks all bullets that are dead and subtracts them
         from total.
 
         @returns:
@@ -148,7 +155,7 @@ class Bullets:
         # index 2 of scalars is being used as lifespan timer for bullets
         self.scalars[:self.n_bullets, 2] += 1
         n = np.count_nonzero(
-            self.scalars[:self.n_bullets, 2] > self._BULLET_LIFESPAN
+            self.scalars[:self.n_bullets, 2] > self._BULLET_LIFESPAN,
         )
         self.scalars[self.n_bullets - n : self.n_bullets, 11] = -1
         self.n_bullets -= n
