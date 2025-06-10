@@ -60,7 +60,7 @@ class HumanRenderingEnv(BaseEnv):
             - seed (int): seed for randomizer. If None, no seed is used.
         """
         # place pygame window in top left of monitor(s)
-        os.environ["SDL_VIDEO_WINDOW_POS"] = f"{0},{0}"
+        os.environ["SDL_VIDEO_WINDOW_POS"] = f"{0},{30}"
         pygame.init()
             
         super().__init__(
