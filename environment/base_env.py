@@ -394,10 +394,9 @@ class BaseEnv:
         """
         actions = np.array([[0, action]])
         self._entities.tick(self._dt, actions)
-
-        # calculate, save, and return observation in current conditions
+        
+        # calculate observation in current conditions
         observation = self._calculate_observation()
-        self._observation_history[self._current_iteration].append(observation)
         
         # if the action was shoot, alter the reward accordingly
         if action == 5:
@@ -449,12 +448,16 @@ class BaseEnv:
                 # positively altered reward
                 if distance_to_center <= effective_radius:
                     self._entities.targets.scalars[i, 13] = 1
-                    return observation[:1] + \
-                        (observation[1] + 50,) + \
-                        observation[2:]
-            # if bullet does not hit, give small punishment
-            return observation[:1] + (observation[1] - 5,) + observation[2:]
-        # if no bullets are shot, return observation as is
+                    # Create modified observation with increased reward
+                    observation[1] += 50
+                    break
+            else:
+                # if bullet does not hit, give small punishment
+                observation[1] -= 5
+
+        # add the observation to the history
+        self._observation_history[self._current_iteration].append(observation)
+
         return observation
 
     def reset(self, seed: int|None = None)-> tuple[np.ndarray, dict]:
@@ -515,7 +518,7 @@ class BaseEnv:
         """
         # prepare the output folder
         if save_json or save_figs:
-            folder_path = f"output/{datetime.datetime.now().strftime('%d-%m-%Y_%H:%M')}"
+            folder_path = f"output/{datetime.datetime.now().strftime('%d-%m-%Y_%Hu%M')}"
             os.mkdir(folder_path)
 
         # write all the observations to a json file
