@@ -6,5 +6,6 @@
 ##########################################################
 
 window_dimensions : [1280, 720]
+tps: 200
 background:
     sprite : "assets/background_C_Lelant.png"

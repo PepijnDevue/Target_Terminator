@@ -62,6 +62,9 @@ class HumanRenderingEnv(BaseEnv):
         # place pygame window in top left of monitor(s)
         os.environ["SDL_VIDEO_WINDOW_POS"] = f"{0},{30}"
         pygame.init()
+        
+        # Initialize the clock for FPS control
+        self.clock = pygame.time.Clock()
             
         super().__init__(
             plane_config=plane_config,
@@ -143,6 +146,7 @@ class HumanRenderingEnv(BaseEnv):
         for bullet_vectors, rotate_instruction in zip(
             alive_bullets,
             rotate_instructions,
+            strict=True,
         ):
             rotated_sprite = pygame.transform.rotate(
                 self._bullet_sprite,
@@ -166,6 +170,7 @@ class HumanRenderingEnv(BaseEnv):
         for airplane_vectors, rotate_instruction in zip(
             alive_airplanes,
             rotate_instructions,
+            strict=True,
         ):
             rotated_sprite = pygame.transform.rotate(
                 self._plane_sprite,
@@ -196,6 +201,10 @@ class HumanRenderingEnv(BaseEnv):
         )
         
         pygame.display.flip()
+        
+        # Limit the tick rate to the specified TPS from config
+        tps = self._env_data.get("tps", 1000)
+        self.clock.tick(tps)
 
         
     def step(self, action: int)-> np.ndarray:

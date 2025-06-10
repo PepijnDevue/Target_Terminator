@@ -20,6 +20,12 @@ ENVIRONMENT_TEMPLATE = {
         "maxlength" : 2,
         "items" : {"type" : "integer", "min" : 1},
     },
+    "tps" : {
+        "required" : False,
+        "type" : "integer",
+        "min" : 1,
+        "max" : 1000,
+    },
     "background" : {
         "required" : False,
         "type" : "dict",
