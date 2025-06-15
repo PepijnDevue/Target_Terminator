@@ -24,9 +24,19 @@ sys.path += ["", "Target_Terminator/", "Target_Terminator/assets/"]
 with contextlib.suppress(Exception):
     os.chdir("Target_Terminator/")
 
+from agents import Agent, Policy
 from environment.base_env import BaseEnv
 from environment.human_control_env import HumanControlEnv
 from environment.human_rendering_env import HumanRenderingEnv
+
+__all__ = [
+    "Agent",
+    "BaseEnv",
+    "HumanControlEnv",
+    "HumanRenderingEnv",
+    "Policy",
+    "make",
+]
 
 
 def make(

@@ -449,14 +449,13 @@ class BaseEnv:
                 if distance_to_center <= effective_radius:
                     self._entities.targets.scalars[i, 13] = 1
                     # Create modified observation with increased reward
-                    observation[1] += 50
+                    state, reward, is_terminal, is_truncated, info = observation
+                    observation = (state, reward + 50, is_terminal, is_truncated, info)
                     break
             else:
                 # if bullet does not hit, give small punishment
-                observation[1] -= 5
-
-        # add the observation to the history
-        self._observation_history[self._current_iteration].append(observation)
+                state, reward, is_terminal, is_truncated, info = observation
+                observation = (state, reward - 5, is_terminal, is_truncated, info)
 
         return observation
 
