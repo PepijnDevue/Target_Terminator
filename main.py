@@ -1,13 +1,13 @@
 """Main module for running the Target Terminator environment."""
 import random
 
-from __init__ import Agent, Policy, make
+from __init__ import Agent, DeepQNetwork, Policy, make
 
 PLANE_CONFIG = "config/dickbutt.yaml"
 ENV_CONFIG = "config/urinal.yaml"
 TARGET_CONFIG = "config/fly.yaml"
 
-def run_headed(mode: str = "keyboard") -> None:
+def run_keyboard() -> None:
     """
     Run the environment in headed mode with GUI or keyboard control.
 
@@ -19,27 +19,27 @@ def run_headed(mode: str = "keyboard") -> None:
     ", or "headless". Defaults to "keyboard".
     """
     env = make(
-        render_mode=mode,
+        render_mode="keyboard",
         plane_config=PLANE_CONFIG,
         env_config=ENV_CONFIG,
         target_config=TARGET_CONFIG,
     )
 
-    for _ in range(10_000):
+    for _ in range(1_000):
         # in keyboard mode the random.choice will be ignored
-        state, reward, terminated, truncated, _ = env.step(random.choice([1,2,3,4,5]))
+        _, _, terminated, truncated, _ = env.step(0)
         
         # respawn agent when crashed or won
         if terminated or truncated:
             env.reset()
 
     env.close(
-        save_json=True,
-        save_figs=True,
+        save_json=False,
+        save_figs=False,
     )
 
 
-def run_headless() -> None:
+def run_ai(mode: str = "headless") -> None:
     """
     Run the environment in headless mode.
     
@@ -47,17 +47,19 @@ def run_headless() -> None:
     a simulation for a specified number of steps.
     """
     env = make(
-        render_mode="headless",
+        render_mode=mode,
         plane_config=PLANE_CONFIG,
         env_config=ENV_CONFIG,
         target_config=TARGET_CONFIG,
     )
 
-    policy = Policy(env)  # Placeholder for policy initialization
+    policy = Policy()
 
-    agent = Agent(env, Policy)  # Placeholder for agent initialization
+    dqn = DeepQNetwork()
 
-    agent.play() # Placeholder for agent's play method
+    agent = Agent(env, policy, dqn)
+
+    agent.play()
 
 
 if __name__ == "__main__":
@@ -65,8 +67,8 @@ if __name__ == "__main__":
 
     match mode:
         case "k" | "keyboard":
-            run_headed("keyboard")
+            run_keyboard()
         case "h" | "human":
-            run_headed("human")
+            run_ai("human")
         case _:
-            run_headless()
+            run_ai()

@@ -33,7 +33,7 @@ class Memory:
         """
         self.buffer.append(transition)
     
-    def sample(self, batch_size: int) -> list[Transition]:
+    def sample(self, batch_size: int = 128) -> list[Transition]:
         """
         Sample a batch of transitions from the memory buffer.
         
@@ -50,7 +50,7 @@ class Memory:
             msg = f"Cannot sample {batch_size} transitions from buffer of size {len(self.buffer)}"
             raise ValueError(msg)
         
-        return self.rng.sample(list(self.buffer), batch_size)
+        return self.rng.sample(self.buffer, batch_size)
     
     def __len__(self) -> int:
         """Return the current number of transitions stored."""

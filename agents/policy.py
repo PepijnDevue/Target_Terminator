@@ -16,13 +16,9 @@ class Policy:
     
     def __init__(
         self,
-        env: BaseEnv,
-        alpha: float = 0.01,
-        gamma: float = 0.99,
         epsilon: float = 1.0,
         epsilon_min: float = 0.01,
         epsilon_decay: float = 0.995,
-        n_actions: int = 6,
     ) -> None:
         """
         Initialize the epsilon-greedy policy.
@@ -33,18 +29,13 @@ class Policy:
             - epsilon_decay (float): Decay factor for epsilon
             - n_actions (int): Number of possible actions
         """
-        self.alpha = alpha
-        self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
-        self.n_actions = n_actions
 
         self.rng = np.random.default_rng()
-
-        self._train(env)
         
-    def select_action(self, state: np.ndarray) -> int:
+    def select_action(self, q_values: np.ndarray) -> int:
         """
         Select an action using epsilon-greedy strategy.
         
@@ -56,18 +47,18 @@ class Policy:
         """
         if self.rng.random() < self.epsilon:
             # Explore: random action
-            return self.rng.integers(0, self.n_actions)
+            return self.rng.integers(low=0, high=6)
         
-        # Placeholder for exploitation logic
-        return self.rng.integers(0, self.n_actions)
-    
-    def _train(self, env: BaseEnv) -> None:
-        pass
-    
-    def _decay(self) -> None:
-        """Decay epsilon to reduce exploration over time."""
-        if self.epsilon >= self.epsilon_min:
-            self.epsilon = max(
-                self.epsilon_min,
-                self.epsilon * self.epsilon_decay,
-            )
+        # Exploit: action with highest Q-value
+        return np.argmax(q_values)
+
+    def decay_epsilon(self) -> None:
+        """
+        Decay the exploration rate epsilon.
+        
+        Reduces epsilon towards the minimum value to shift from exploration
+        to exploitation over time.
+        """
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+            self.epsilon = max(self.epsilon, self.epsilon_min)

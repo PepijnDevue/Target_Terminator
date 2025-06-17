@@ -4,6 +4,7 @@ import numpy as np
 
 from environment.base_env import BaseEnv
 
+from .dqn import DeepQNetwork
 from .policy import Policy
 
 
@@ -19,12 +20,14 @@ class Agent:
         self,
         env: BaseEnv,
         policy: Policy,
+        dqn: DeepQNetwork,
     ) -> None:
         """
         Initialize the DQN Agent.
         """
         self.env = env
         self.policy = policy
+        self.dqn = dqn
         
         # Random number generator
         self.rng = np.random.default_rng()
@@ -39,10 +42,16 @@ class Agent:
         @returns:
             - np.ndarray: The next state after taking the action
         """
-        action = self.policy.select_action(state)
+        q_values = self.dqn(state)
+
+        action = self.policy.select_action(q_values)
         
         # Execute action in the environment
-        next_state, *_ = self.env.step(action)
+        next_state, _, terminated, truncated, _ = self.env.step(action)
+        
+        if terminated or truncated:
+            # Reset the environment if the episode has ended
+            next_state, _ = self.env.reset()
         
         return next_state
     
@@ -57,9 +66,5 @@ class Agent:
         
         for _ in range(steps):
             state = self.act(state)
-            
-            # Check if the episode has ended
-            if self.env.terminated or self.env.truncated:
-                state, _ = self.env.reset()
         
         self.env.close(save_json=True, save_figs=True)

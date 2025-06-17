@@ -24,7 +24,7 @@ sys.path += ["", "Target_Terminator/", "Target_Terminator/assets/"]
 with contextlib.suppress(Exception):
     os.chdir("Target_Terminator/")
 
-from agents import Agent, Policy
+from agents import Agent, DeepQNetwork, Policy
 from environment.base_env import BaseEnv
 from environment.human_control_env import HumanControlEnv
 from environment.human_rendering_env import HumanRenderingEnv
@@ -32,6 +32,7 @@ from environment.human_rendering_env import HumanRenderingEnv
 __all__ = [
     "Agent",
     "BaseEnv",
+    "DeepQNetwork",
     "HumanControlEnv",
     "HumanRenderingEnv",
     "Policy",

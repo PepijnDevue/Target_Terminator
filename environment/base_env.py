@@ -457,6 +457,8 @@ class BaseEnv:
                 state, reward, is_terminal, is_truncated, info = observation
                 observation = (state, reward - 5, is_terminal, is_truncated, info)
 
+        self._observation_history[self._current_iteration].append(observation)
+
         return observation
 
     def reset(self, seed: int|None = None)-> tuple[np.ndarray, dict]:
