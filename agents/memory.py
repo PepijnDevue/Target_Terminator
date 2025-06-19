@@ -13,7 +13,7 @@ class Memory:
     Stores transitions and provides random sampling for training.
     """
     
-    def __init__(self, capacity: int = 10_000) -> None:
+    def __init__(self, capacity: int = 10_000, batch_size: int = 128) -> None:
         """
         Initialize the memory buffer.
         
@@ -22,6 +22,7 @@ class Memory:
         """
         self.capacity = capacity
         self.buffer = deque(maxlen=capacity)
+        self.batch_size = batch_size
         self.rng = random.Random()
     
     def store(self, transition: Transition) -> None:
@@ -33,7 +34,7 @@ class Memory:
         """
         self.buffer.append(transition)
     
-    def sample(self, batch_size: int = 128) -> list[Transition]:
+    def sample(self, batch_size: int = None) -> list[Transition]:
         """
         Sample a batch of transitions from the memory buffer.
         
@@ -46,8 +47,11 @@ class Memory:
         @raises:
             - ValueError: If batch_size is larger than available transitions
         """
+        if batch_size is None:
+            batch_size = self.batch_size
+            
         if batch_size > len(self.buffer):
-            msg = f"Cannot sample {batch_size} transitions from buffer of size {len(self.buffer)}"
+            msg = f"Can't sample {batch_size} transitions from buffersize {len(self.buffer)}"
             raise ValueError(msg)
         
         return self.rng.sample(self.buffer, batch_size)

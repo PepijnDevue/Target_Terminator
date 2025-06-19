@@ -25,7 +25,7 @@ class DeepQNetwork(nn.Module):
         input_size: int = 5,
         hidden_size1: int = 150,
         hidden_size2: int = 128,
-        output_size: int = 6
+        output_size: int = 6,
     ) -> None:
         """
         Initialize the DQN network.
@@ -54,7 +54,7 @@ class DeepQNetwork(nn.Module):
         x_tensor = torch.tensor(x, dtype=torch.float32)
         return self.layers(x_tensor)
     
-    def __call__(self, x: np.ndarray) -> torch.Tensor:
+    def __call__(self, x: np.ndarray) -> np.ndarray:
         """
         Make the network callable directly.
         
@@ -63,4 +63,31 @@ class DeepQNetwork(nn.Module):
         @returns:
             - torch.Tensor: Predicted Q-values for each action
         """
-        return self.forward(x)
+        return self.forward(x).detach().numpy()
+    
+    def update(self, state: np.ndarray, target_q_values: np.ndarray) -> float:
+        """
+        Update the network parameters using backpropagation.
+        
+        @params:
+            - state (np.ndarray): Input state
+            - target_q_values (torch.Tensor): Target Q-values for training
+            
+        @returns:
+            - float: Loss value for monitoring training progress
+        """
+        # Zero gradients from previous step
+        self.optimizer.zero_grad()
+        
+        # Forward pass to get current Q-values
+        current_q_values = self.forward(state)
+        
+        # Calculate loss (Mean Squared Error)
+        loss_fn = nn.MSELoss()
+        loss = loss_fn(current_q_values, target_q_values)
+        
+        # Backward pass and optimization
+        loss.backward()
+        self.optimizer.step()
+        
+        return loss.item()
