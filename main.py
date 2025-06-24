@@ -25,7 +25,7 @@ def run_keyboard() -> None:
         target_config=TARGET_CONFIG,
     )
 
-    for _ in range(1_000):
+    for _ in range(10_000):
         # in keyboard mode the random.choice will be ignored
         _, _, terminated, truncated, _ = env.step(0)
         
@@ -53,13 +53,13 @@ def run_ai(mode: str = "headless") -> None:
         target_config=TARGET_CONFIG,
     )
 
-    policy = Policy()
+    dqn = DeepQNetwork(load=True)
 
-    dqn = DeepQNetwork()
+    policy = Policy(dqn)
 
-    agent = Agent(env, policy, dqn)
+    agent = Agent(env, policy, training=False)
 
-    agent.play()
+    agent.play(10_000)
 
 
 if __name__ == "__main__":
