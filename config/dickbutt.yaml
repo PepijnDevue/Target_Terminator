@@ -25,11 +25,11 @@ properties:
     critical_aoa_lower_bound : [-15.0, -0.95] # aoa = angle of attack
     critical_aoa_higher_bound : [19.0, 1.4]
     initial_velocity : [100.0, 0.0] # velocity vector
-    initial_position : [100, 300] # coordinate of top left most pixel
+    initial_position : [360, 360] # coordinate of top left most pixel
     
     # other
-    max_spawn_position_deviation : 20 # in pixels from initial_position
-    max_spawn_pitch_deviation : 20 # in degrees from initial_pitch
+    max_spawn_position_deviation : 250 # in pixels from initial_position
+    max_spawn_pitch_deviation : 360 # in degrees from initial_pitch
 
 bullet_config:
     sprite : "assets/piss.png"

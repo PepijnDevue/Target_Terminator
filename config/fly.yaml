@@ -8,8 +8,8 @@
 target0:
   sprite : "assets/fly.png" # we recommend a circular target
   size : [40, 40]
-  position : [600, 500] # coordinate of center most pixel
-  max_spawn_position_deviation : 20 # in pixels from initial_position
+  position : [1150, 500] # coordinate of center most pixel
+  max_spawn_position_deviation : 0 # in pixels from initial_position
   # in pixels around position used for collision
   # we recommend using half of the average size component
   coll_radius : 20 
