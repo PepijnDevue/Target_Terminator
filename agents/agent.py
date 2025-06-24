@@ -1,10 +1,10 @@
 """Agent class for Deep Q-Learning."""
 
 import numpy as np
+import pygame
 
 from environment.base_env import BaseEnv
 
-from .dqn import DeepQNetwork
 from .memory import Memory
 from .policy import Policy
 from .transition import Transition
@@ -22,7 +22,6 @@ class Agent:
         self,
         env: BaseEnv,
         policy: Policy,
-        dqn: DeepQNetwork,
         memory_capacity: int = 10_000,
         training: bool = True,
     ) -> None:
@@ -32,12 +31,10 @@ class Agent:
         @params:
             - env (BaseEnv): The environment to interact with
             - policy (Policy): The policy for action selection
-            - dqn (DeepQNetwork): The deep Q-network
             - memory_capacity (int): Maximum number of transitions to store in memory
         """
         self.env = env
         self.policy = policy
-        self.dqn = dqn
         self.memory = Memory(capacity=memory_capacity)
         self.rng = np.random.default_rng()
         self.state = None
@@ -52,9 +49,7 @@ class Agent:
         @returns:
             - np.ndarray: The next state after taking the action
         """
-        q_values = self.dqn(self.state)
-
-        action = self.policy.select_action(q_values)
+        action = self.policy.select_action(self.state)
         
         # Execute action in the environment
         next_state, reward, terminated, truncated, _ = self.env.step(action)
@@ -90,33 +85,15 @@ class Agent:
         
         batch = self.memory.sample()
 
-        for transition in batch:
-            q_values = self.dqn(transition.state)
-            
-            # Calculate the next Q-value (0 if terminated)
-            next_q_value = 0
-            if not transition.terminated:
-                next_q_value = self.dqn(transition.next_state).max()
-            
-            # Use policy to compute target Q-values using Bellman equation
-            target_q_values = self.policy.compute_target_q_values(
-                q_values=q_values,
-                action=transition.action,
-                reward=transition.reward,
-                next_q_value=next_q_value,
-            )
-            
-            # Update the DQN network
-            self.dqn.update(transition.state, target_q_values)
+        self.policy.train(batch)
 
-    def play(self, steps: int = 10_000) -> None:
+    def play(self, steps: int = 40_000) -> None:
         """
         Play the environment for a specified number of steps.
         
         @params:
             - steps (int): Number of steps to play
         """
-        # TODO: save dqn
         try:
             self.state, _ = self.env.reset()
             
@@ -124,6 +101,8 @@ class Agent:
                 self.act()
             
             self.env.close(save_json=True, save_figs=True)
-        except KeyboardInterrupt:
+            self.policy.dqn.save()
+        except (KeyboardInterrupt, pygame.error):
             print("Training interrupted by user.") # noqa: T201
             self.env.close(save_json=True, save_figs=True)
+            self.policy.dqn.save()

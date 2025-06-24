@@ -34,7 +34,7 @@ class Memory:
         """
         self.buffer.append(transition)
     
-    def sample(self, batch_size: int = None) -> list[Transition]:
+    def sample(self, batch_size: int | None = None) -> list[Transition]:
         """
         Sample a batch of transitions from the memory buffer.
         

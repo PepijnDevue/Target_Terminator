@@ -1,6 +1,10 @@
 """Policy class for epsilon-greedy action selection."""
 
 import numpy as np
+import torch
+
+from .dqn import DeepQNetwork
+from .transition import Transition
 
 
 class Policy:
@@ -14,31 +18,32 @@ class Policy:
     
     def __init__(
         self,
+        dqn: DeepQNetwork,
         epsilon: float = 1.0,
         epsilon_min: float = 0.01,
         epsilon_decay: float = 0.995,
-        learning_rate: float = 1, # Zit al in DQN, dus hier 1?
         discount_factor: float = 0.99,
     ) -> None:
         """
         Initialize the epsilon-greedy policy.
         
         @params:
+            - dqn (DeepQNetwork): The deep Q-network for action value estimation
             - epsilon (float): Initial exploration rate
             - epsilon_min (float): Minimum exploration rate
             - epsilon_decay (float): Decay factor for epsilon
             - learning_rate (float): Learning rate for Q-value updates
             - discount_factor (float): Discount factor for future rewards
         """
+        self.dqn = dqn
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
-        self.alpha = learning_rate
         self.gamma = discount_factor
 
         self.rng = np.random.default_rng()
         
-    def select_action(self, q_values: np.ndarray) -> int:
+    def select_action(self, state: np.ndarray) -> int:
         """
         Select an action using epsilon-greedy strategy.
         
@@ -48,6 +53,8 @@ class Policy:
         @returns:
             - int: Selected action
         """
+        q_values = self.dqn(torch.tensor(state, dtype=torch.float32))
+
         # Decay epsilon after each action selection
         self.decay_epsilon()
 
@@ -57,6 +64,35 @@ class Policy:
         
         # Exploit: action with highest Q-value
         return np.argmax(q_values)
+    
+    def train(self, batch: list[Transition]) -> None:
+        """
+        Train the DQN using a batch of transitions.
+        
+        Updates the Q-values based on the Bellman equation.
+        
+        @params:
+            - batch (list[Transition]): Batch of transitions for training
+        """
+        states = torch.stack([torch.tensor(t.state, dtype=torch.float32) for t in batch])
+        actions = torch.tensor([t.action for t in batch], dtype=torch.long)
+        rewards = torch.tensor([t.reward for t in batch], dtype=torch.float32)
+        next_states = torch.stack([torch.tensor(t.next_state, dtype=torch.float32) for t in batch])
+        terminated = torch.tensor([bool(t.terminated) for t in batch], dtype=torch.bool)
+
+        q_values = self.dqn(states)
+
+        next_q_values = self.dqn(next_states).max(dim=1)[0]
+        next_q_values[terminated] = 0.0
+
+        # Compute target Q-values using the Bellman equation
+        target_q_values = q_values.clone()
+        target_q_values[torch.arange(len(batch)), actions] = (
+            rewards + self.gamma * next_q_values
+        )
+
+        # Finally, call update with the computed target Q-values shape (batch_size, num_actions)
+        self.dqn.update(states, target_q_values)
 
     def decay_epsilon(self) -> None:
         """
@@ -68,30 +104,3 @@ class Policy:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
             self.epsilon = max(self.epsilon, self.epsilon_min)
-    
-    def compute_target_q_values(
-        self,
-        q_values: np.ndarray,
-        action: int,
-        reward: float,
-        next_q_value: float,
-    ) -> np.ndarray:
-        """
-        Compute target Q-values using the Bellman equation.
-        
-        @params:
-            - q_values (np.ndarray): Current Q-values
-            - action (int): Action taken
-            - reward (float): Reward received
-            - next_q_value (float): Maximum Q-value for the next state
-            
-        @returns:
-            - np.ndarray: Updated Q-values
-        """
-        target_q_values = q_values.copy()
-        
-        q_value = q_values[action]
-                
-        target_q_values[action] += self.alpha * (reward + self.gamma * next_q_value - q_value)
-        
-        return target_q_values

@@ -1,6 +1,5 @@
 """DeepQNetwork Class for Deep Q-Learning Function Approximation."""
 
-import numpy as np
 import torch
 from torch import nn
 
@@ -21,6 +20,7 @@ class DeepQNetwork(nn.Module):
     
     def __init__(
         self,
+        load: bool = True,
         learning_rate: float = 0.001,
         input_size: int = 5,
         hidden_size1: int = 150,
@@ -39,55 +39,70 @@ class DeepQNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_size2, output_size),
         )
+        
+        if load:
+            try:
+                self.layers.load_state_dict(torch.load("agents/models/dqn.pth"))
+            except FileNotFoundError:
+                print("No pre-trained model found. Initializing a new model.") # noqa: T201
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
-    def forward(self, x: np.ndarray) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass through the network.
         
         @params:
-            - x (np.ndarray): Input state
+            - x (torch.Tensor): Input state(s) - can be single state or batch of states
         @returns:
             - torch.Tensor: Predicted Q-values for each action
         """
-        x_tensor = torch.tensor(x, dtype=torch.float32)
-        return self.layers(x_tensor)
+        # Ensure input has batch dimension
+        if x.dim() == 1:
+            x = x.unsqueeze(0)
+
+        return self.layers(x)
     
-    def __call__(self, x: np.ndarray) -> np.ndarray:
+    def __call__(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Make the network callable directly.
+        Make the network callable directly. Detached from PyTorch's autograd.
         
         @params:
-            - x (np.ndarray): Input state
+            - x (torch.Tensor): Input state
         @returns:
             - torch.Tensor: Predicted Q-values for each action
         """
-        return self.forward(x).detach().numpy()
+        return self.forward(x).detach()
     
-    def update(self, state: np.ndarray, target_q_values: np.ndarray) -> float:
+    def update(self, states: torch.Tensor, target_q_values: torch.Tensor) -> None:
         """
         Update the network parameters using backpropagation.
         
         @params:
-            - state (np.ndarray): Input state
+            - states (torch.Tensor): Input states
             - target_q_values (torch.Tensor): Target Q-values for training
-            
-        @returns:
-            - float: Loss value for monitoring training progress
         """
         # Zero gradients from previous step
         self.optimizer.zero_grad()
         
-        # Forward pass to get current Q-values
-        current_q_values = self.forward(state)
-        
-        # Calculate loss (Mean Squared Error)
-        loss_fn = nn.MSELoss()
-        loss = loss_fn(current_q_values, target_q_values)
-        
-        # Backward pass and optimization
+        # Forward pass
+        predicted_q_values = self.forward(states)
+
+        # Compute loss
+        loss = nn.MSELoss()(predicted_q_values, target_q_values)
+
+        # Backward pass
         loss.backward()
+
+        # Update parameters
         self.optimizer.step()
+
+    def save(self, filename: str = "dqn") -> None:
+        """
+        Save the model parameters to a file.
         
-        return loss.item()
+        @params:
+            - filename (str): Path to the file where the model will be saved
+        """
+        # Add paths "agents/models + filename
+        torch.save(self.layers.state_dict(), f"agents/models/{filename}.pth")
